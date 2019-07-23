@@ -1,0 +1,216 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+services:
+
+  anchorpr.sipher.cerberus.net:
+    container_name: anchorpr.sipher.cerberus.net
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=anchorpr.sipher.cerberus.net
+      - CORE_PEER_ADDRESS=anchorpr.sipher.cerberus.net:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=anchorpr.sipher.cerberus.net:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_USELEADERELECTION=false # the peer will stand by
+
+      - CORE_PEER_GOSSIP_BOOTSTRAP=[lead0pr.sipher.cerberus.net:7051 lead1pr.sipher.cerberus.net:7051]
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=communicatepr.sipher.cerberus.net:7051
+      - CORE_PEER_LOCALMSPID=SipherMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/anchorpr.sipher.cerberus.net/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/anchorpr.sipher.cerberus.net/tls:/etc/hyperledger/fabric/tls
+      - anchorpr.sipher.cerberus.net:/var/hyperledger/production
+    ports:
+      - 10001:7051
+      - 10002:7052
+      - 10003:7053
+
+  lead0pr.sipher.cerberus.net:
+    container_name: lead0pr.sipher.cerberus.net
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=lead0pr.sipher.cerberus.net
+      - CORE_PEER_ADDRESS=lead0pr.sipher.cerberus.net:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=lead0pr.sipher.cerberus.net:10006
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10006
+      - CORE_PEER_GOSSIP_ORGLEADER=true # this is leader 0
+
+      - CORE_PEER_GOSSIP_BOOTSTRAP=lead1pr.sipher.cerberus.net:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=communicatepr.sipher.cerberus.net:7051
+      - CORE_PEER_LOCALMSPID=SipherMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/lead0pr.sipher.cerberus.net/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/lead0pr.sipher.cerberus.net/tls:/etc/hyperledger/fabric/tls
+      - lead0pr.sipher.cerberus.net:/var/hyperledger/production
+    ports:
+      - 10005:7051
+      - 10006:7052
+      - 10007:7053
+
+  lead1pr.sipher.cerberus.net:
+    container_name: lead1pr.sipher.cerberus.net
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=lead1pr.sipher.cerberus.net
+      - CORE_PEER_ADDRESS=lead1pr.sipher.cerberus.net:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=lead1pr.sipher.cerberus.net:10010
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10010
+      - CORE_PEER_GOSSIP_ORGLEADER=true # this is leader 1
+
+      - CORE_PEER_GOSSIP_BOOTSTRAP=lead0pr.sipher.cerberus.net:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=communicatepr.sipher.cerberus.net:7051
+      - CORE_PEER_LOCALMSPID=SipherMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/lead1pr.sipher.cerberus.net/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/lead1pr.sipher.cerberus.net/tls:/etc/hyperledger/fabric/tls
+      - lead1pr.sipher.cerberus.net:/var/hyperledger/production
+    ports:
+      - 10009:7051
+      - 10010:7052
+      - 10011:7053
+
+  communicatepr.sipher.cerberus.net:
+    container_name: communicatepr.sipher.cerberus.net
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=communicatepr.sipher.cerberus.net
+      - CORE_PEER_ADDRESS=communicatepr.sipher.cerberus.net:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=communicatepr.sipher.cerberus.net:10014
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10014
+      - CORE_PEER_GOSSIP_USELEADERELECTION=false # the peer will stand by
+
+      - CORE_PEER_GOSSIP_BOOTSTRAP=[lead0pr.sipher.cerberus.net:7051 lead1pr.sipher.cerberus.net:7051]
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=anchorpr.sipher.cerberus.net:7051
+      - CORE_PEER_LOCALMSPID=SipherMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/communicatepr.sipher.cerberus.net/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/communicatepr.sipher.cerberus.net/tls:/etc/hyperledger/fabric/tls
+      - communicatepr.sipher.cerberus.net:/var/hyperledger/production
+    ports:
+      - 10013:7051
+      - 10014:7052
+      - 10015:7053
+
+  execute0pr.sipher.cerberus.net:
+    container_name: execute0pr.sipher.cerberus.net
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=execute0pr.sipher.cerberus.net
+      - CORE_PEER_ADDRESS=execute0pr.sipher.cerberus.net:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=execute0pr.sipher.cerberus.net:10018
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10018
+      - CORE_PEER_GOSSIP_USELEADERELECTION=false # the peer will stand by
+
+      - CORE_PEER_GOSSIP_BOOTSTRAP=[lead0pr.sipher.cerberus.net:7051 lead1pr.sipher.cerberus.net:7051]
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=communicatepr.sipher.cerberus.net:7051
+      - CORE_PEER_LOCALMSPID=SipherMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/execute0pr.sipher.cerberus.net/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/execute0pr.sipher.cerberus.net/tls:/etc/hyperledger/fabric/tls
+      - execute0pr.sipher.cerberus.net:/var/hyperledger/production
+    ports:
+      - 10017:7051
+      - 10018:7052
+      - 10019:7053
+
+  execute1pr.sipher.cerberus.net:
+    container_name: execute1pr.sipher.cerberus.net
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=execute1pr.sipher.cerberus.net
+      - CORE_PEER_ADDRESS=execute1pr.sipher.cerberus.net:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=execute1pr.sipher.cerberus.net:10022
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10022
+      - CORE_PEER_GOSSIP_USELEADERELECTION=false # the peer will stand by
+
+      - CORE_PEER_GOSSIP_BOOTSTRAP=[lead0pr.sipher.cerberus.net:7051 lead1pr.sipher.cerberus.net:7051]
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=communicatepr.sipher.cerberus.net:7051
+      - CORE_PEER_LOCALMSPID=SipherMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/execute1pr.sipher.cerberus.net/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/execute1pr.sipher.cerberus.net/tls:/etc/hyperledger/fabric/tls
+      - execute1pr.sipher.cerberus.net:/var/hyperledger/production
+    ports:
+      - 10021:7051
+      - 10022:7052
+      - 10023:7053
+
+  fallback0pr.sipher.cerberus.net:
+    container_name: fallback0pr.sipher.cerberus.net
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=fallback0pr.sipher.cerberus.net
+      - CORE_PEER_ADDRESS=fallback0pr.sipher.cerberus.net:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=fallback0pr.sipher.cerberus.net:10026
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10026
+      - CORE_PEER_GOSSIP_USELEADERELECTION=false # the peer will stand by
+
+      - CORE_PEER_GOSSIP_BOOTSTRAP=[lead0pr.sipher.cerberus.net:7051 lead1pr.sipher.cerberus.net:7051]
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=communicatepr.sipher.cerberus.net:7051
+      - CORE_PEER_LOCALMSPID=SipherMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/fallback0pr.sipher.cerberus.net/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/fallback0pr.sipher.cerberus.net/tls:/etc/hyperledger/fabric/tls
+      - fallback0pr.sipher.cerberus.net:/var/hyperledger/production
+    ports:
+      - 10025:7051
+      - 10026:7052
+      - 10027:7053
+
+  fallback1pr.sipher.cerberus.net:
+    container_name: fallback1pr.sipher.cerberus.net
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=fallback1pr.sipher.cerberus.net
+      - CORE_PEER_ADDRESS=fallback1pr.sipher.cerberus.net:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=fallback1pr.sipher.cerberus.net:10030
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10030
+      - CORE_PEER_GOSSIP_USELEADERELECTION=false # the peer will stand by
+
+      - CORE_PEER_GOSSIP_BOOTSTRAP=[lead0pr.sipher.cerberus.net:7051 lead1pr.sipher.cerberus.net:7051]
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=communicatepr.sipher.cerberus.net:7051
+      - CORE_PEER_LOCALMSPID=SipherMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/fallback1pr.sipher.cerberus.net/msp:/etc/hyperledger/fabric/msp
+      - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/fallback1pr.sipher.cerberus.net/tls:/etc/hyperledger/fabric/tls
+      - fallback1pr.sipher.cerberus.net:/var/hyperledger/production
+    ports:
+      - 10029:7051
+      - 10030:7052
+      - 10031:7053

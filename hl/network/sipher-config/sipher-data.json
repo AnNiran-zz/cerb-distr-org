@@ -1,0 +1,14 @@
+{
+	"containers":  [
+		{"container": "anchorpr.sipher.cerberus.net"},
+		{"container": "lead0pr.sipher.cerberus.net"},
+		{"container": "lead1pr.sipher.cerberus.net"},
+		{"container": "communicatepr.sipher.cerberus.net"}
+	],
+	"label": "sipher",
+	"name": "Sipher",
+	"host": "155.138.144.24",
+	"username": "anniran",
+	"password": "9anna8925lva",
+	"path": "/home/anniran/server/go/src/cerberus/"
+}

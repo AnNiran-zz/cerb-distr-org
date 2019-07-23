@@ -1,0 +1,242 @@
+version: "2"
+volumes:
+  anchorpr.sipher.cerberus.net: null
+  lead0pr.sipher.cerberus.net: null
+  lead1pr.sipher.cerberus.net: null
+  communicatepr.sipher.cerberus.net: null
+  execute0pr.sipher.cerberus.net: null
+  execute1pr.sipher.cerberus.net: null
+  fallback0pr.sipher.cerberus.net: null
+  fallback1pr.sipher.cerberus.net: null
+networks:
+  cerberusntw: null
+services:
+  couchdb.anchorpr.sipher:
+    container_name: couchdb.anchorpr.sipher
+    image: hyperledger/fabric-couchdb:$IMAGE_TAG
+    environment:
+    - COUCHDB_USER=useranchorprsipher
+    - COUCHDB_PASSWORD=passwordanchorprsipher
+    ports:
+    - 10004:5984
+    networks:
+    - cerberusntw
+  anchorpr.sipher.cerberus.net:
+    extends:
+      file: ../base/docker-compose-sipher-base.yaml
+      service: anchorpr.sipher.cerberus.net
+    environment:
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.anchorpr.sipher:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=useranchorprsipher
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=passwordanchorprsipher
+    depends_on:
+    - couchdb.anchorpr.sipher
+    extra_hosts:
+    - osinstance1.cerberus.net:159.203.35.156
+    - osinstance3.cerberus.net:159.203.35.156
+    - anchorpr.cerberusorg.cerberus.net:159.203.35.156
+    - communicatepr.cerberusorg.cerberus.net:159.203.35.156
+  couchdb.lead0pr.sipher:
+    container_name: couchdb.lead0pr.sipher
+    image: hyperledger/fabric-couchdb:$IMAGE_TAG
+    environment:
+    - COUCHDB_USER=userlead0prsipher
+    - COUCHDB_PASSWORD=passwordlead0prsipher
+    ports:
+    - 10008:5984
+    networks:
+    - cerberusntw
+  lead0pr.sipher.cerberus.net:
+    extends:
+      file: ../base/docker-compose-sipher-base.yaml
+      service: lead0pr.sipher.cerberus.net
+    environment:
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.lead0pr.sipher:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=userlead0prsipher
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=passwordlead0prsipher
+    depends_on:
+    - couchdb.lead0pr.sipher
+    extra_hosts:
+    - osinstance1.cerberus.net:159.203.35.156
+    - osinstance3.cerberus.net:159.203.35.156
+    - anchorpr.cerberusorg.cerberus.net:159.203.35.156
+    - communicatepr.cerberusorg.cerberus.net:159.203.35.156
+  couchdb.lead1pr.sipher:
+    container_name: couchdb.lead1pr.sipher
+    image: hyperledger/fabric-couchdb:$IMAGE_TAG
+    environment:
+    - COUCHDB_USER=userlead1prsipher
+    - COUCHDB_PASSWORD=passwordlead1prsipher
+    ports:
+    - 10012:5984
+    networks:
+    - cerberusntw
+  lead1pr.sipher.cerberus.net:
+    extends:
+      file: ../base/docker-compose-sipher-base.yaml
+      service: lead1pr.sipher.cerberus.net
+    environment:
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.lead1pr.sipher:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=userlead1prsipher
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=passwordlead1prsipher
+    depends_on:
+    - couchdb.lead1pr.sipher
+    extra_hosts:
+    - osinstance1.cerberus.net:159.203.35.156
+    - osinstance3.cerberus.net:159.203.35.156
+    - anchorpr.cerberusorg.cerberus.net:159.203.35.156
+    - communicatepr.cerberusorg.cerberus.net:159.203.35.156
+  couchdb.communicatepr.sipher:
+    container_name: couchdb.communicatepr.sipher
+    image: hyperledger/fabric-couchdb:$IMAGE_TAG
+    environment:
+    - COUCHDB_USER=usercommunicateprsipher
+    - COUCHDB_PASSWORD=passwordcommunicateprsipher
+    ports:
+    - 10016:5984
+    networks:
+    - cerberusntw
+  communicatepr.sipher.cerberus.net:
+    extends:
+      file: ../base/docker-compose-sipher-base.yaml
+      service: communicatepr.sipher.cerberus.net
+    environment:
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.communicatepr.sipher:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=usercommunicateprsipher
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=passwordcommunicateprsipher
+    depends_on:
+    - couchdb.communicatepr.sipher
+    extra_hosts:
+    - osinstance1.cerberus.net:159.203.35.156
+    - osinstance3.cerberus.net:159.203.35.156
+    - anchorpr.cerberusorg.cerberus.net:159.203.35.156
+    - communicatepr.cerberusorg.cerberus.net:159.203.35.156
+  couchdb.execute0pr.sipher:
+    container_name: couchdb.execute0pr.sipher
+    image: hyperledger/fabric-couchdb:$IMAGE_TAG
+    environment:
+    - COUCHDB_USER=userexecute0prsipher
+    - COUCHDB_PASSWORD=passwordexecute0prsipher
+    ports:
+    - 10020:5984
+    networks:
+    - cerberusntw
+  execute0pr.sipher.cerberus.net:
+    extends:
+      file: ../base/docker-compose-sipher-base.yaml
+      service: execute0pr.sipher.cerberus.net
+    environment:
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.execute0pr.sipher:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=userexecute0prsipher
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=passwordexecute0prsipher
+    depends_on:
+    - couchdb.execute0pr.sipher
+  couchdb.execute1pr.sipher:
+    container_name: couchdb.execute1pr.sipher
+    image: hyperledger/fabric-couchdb:$IMAGE_TAG
+    environment:
+    - COUCHDB_USER=userexecute1prsipher
+    - COUCHDB_PASSWORD=passwordexecute1prsipher
+    ports:
+    - 10024:5984
+    networks:
+    - cerberusntw
+  execute1pr.sipher.cerberus.net:
+    extends:
+      file: ../base/docker-compose-sipher-base.yaml
+      service: execute1pr.sipher.cerberus.net
+    environment:
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.execute1pr.sipher:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=userexecute1prsipher
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=passwordexecute1prsipher
+    depends_on:
+    - couchdb.execute1pr.sipher
+  couchdb.fallback0pr.sipher:
+    container_name: couchdb.fallback0pr.sipher
+    image: hyperledger/fabric-couchdb:$IMAGE_TAG
+    environment:
+    - COUCHDB_USER=userfallback0prsipher
+    - COUCHDB_PASSWORD=passwordfallback0prsipher
+    ports:
+    - 10028:5984
+    networks:
+    - cerberusntw
+  fallback0pr.sipher.cerberus.net:
+    extends:
+      file: ../base/docker-compose-sipher-base.yaml
+      service: fallback0pr.sipher.cerberus.net
+    environment:
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.fallback0pr.sipher:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=userfallback0prsipher
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=passwordfallback0prsipher
+    depends_on:
+    - couchdb.fallback0pr.sipher
+  couchdb.fallback1pr.sipher:
+    container_name: couchdb.fallback1pr.sipher
+    image: hyperledger/fabric-couchdb:$IMAGE_TAG
+    environment:
+    - COUCHDB_USER=userfallback1prsipher
+    - COUCHDB_PASSWORD=passwordfallback1prsipher
+    ports:
+    - 10032:5984
+    networks:
+    - cerberusntw
+  fallback1pr.sipher.cerberus.net:
+    extends:
+      file: ../base/docker-compose-sipher-base.yaml
+      service: fallback1pr.sipher.cerberus.net
+    environment:
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.fallback1pr.sipher:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=userfallback1prsipher
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=passwordfallback1prsipher
+    depends_on:
+    - couchdb.fallback1pr.sipher
+  cli.sipher.cerberus.net:
+    container_name: cli.sipher.cerberus.net
+    image: hyperledger/fabric-tools:$IMAGE_TAG
+    tty: true
+    stdin_open: true
+    environment:
+    - GOPATH=/opt/gopath
+    - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+    - FABRIC_LOGGING_SPEC=INFO
+    - CORE_PEER_ID=cli.sipher.cerberus.net
+    - CORE_PEER_ADDRESS=anchorpr.sipher.cerberus.net:7051
+    - CORE_PEER_LOCALMSPID=SipherMSP
+    - CORE_PEER_TLS_ENABLED=true
+    - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/cerberusorg.cerberus.net/peers/anchorpr.cerberusorg.cerberus.net/tls/server.crt
+    - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/cerberusorg.cerberus.net/peers/anchorpr.cerberusorg.cerberus.net/tls/server.key
+    - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/cerberusorg.cerberus.net/users/Admin@cerberusorg.cerberus.net/msp
+    - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/cerberusorg.cerberus.net/users/Admin@cerberusorg.cerberus.net/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+    - /var/run/:/host/var/run/
+    - ../../../chaincode/:/opt/gopath/src/github.com/chaincode
+    - ../crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto
+    - ../scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts
+    - ../channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+    - anchorpr.sipher.cerberus.net
+    - lead0pr.sipher.cerberus.net
+    - lead1pr.sipher.cerberus.net
+    - communicatepr.sipher.cerberus.net
+    - execute0pr.sipher.cerberus.net
+    - execute1pr.sipher.cerberus.net
+    - fallback0pr.sipher.cerberus.net
+    - fallback1pr.sipher.cerberus.net
+    networks:
+    - cerberusntw
+    extra_hosts:
+    - osinstance1.cerberus.net:159.203.35.156
+    - osinstance3.cerberus.net:159.203.35.156
+    - anchorpr.cerberusorg.cerberus.net:159.203.35.156
+    - communicatepr.cerberusorg.cerberus.net:159.203.35.156
