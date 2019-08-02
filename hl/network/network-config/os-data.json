@@ -12,7 +12,7 @@
 				},
 				{
 					"label": "osinstance1",
-					"container": "osinstance1.cerberus.net",
+					"container": "osinstance2.cerberus.net",
 					"host": "159.203.35.156",
 					"username": "anniran",
 					"password": "9anna8925lva",
@@ -37,7 +37,7 @@
 				{
 					"label": "osinstance4",
 					"container": "osinstance4.cerberus.net",
-					"host": "159.203.25.156",
+					"host": "159.203.35.156",
 					"username": "anniran",
 					"password": "9anna8925lva",
 					"path": "/home/anniran/server/go/src/cerberus-os/"

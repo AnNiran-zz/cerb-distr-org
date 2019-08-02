@@ -1,4 +1,4 @@
-#!/bin/bash
+#htoi !/bin/bash
 #
 # Copyright IBM Corp All Rights Reserved
 #
@@ -40,6 +40,47 @@ export VERBOSE=false
 
 # Print the usage message
 function printHelp() {
+	echo
+	echo "### Commands: ###"
+	echo
+	echo "sipher.sh <action>"
+	echo "	configure-connection"
+	echo "		Displays all the steps for obtaining network data, adding extra hosts, generating required certificates and genesis block and connecting organization"
+	echo "		to running network"
+	echo
+	echo
+	echo "	help"
+	echo "		Displays this message"
+	echo
+	echo "	generate"
+	echo "		Generates required certificates and organization channel artifacts"
+	echo
+	echo "	add-env"
+	echo "		Adds environment data to Sipher configuration"
+	echo "		To add Cerberus network organization and Ordering Service instances data to environment configuration:"
+	echo "		-e cerb"
+	echo "		To add all external (to Sipher) organizations data to environment configuration:"
+	echo "		-e ext"
+	echo "		To add Cerberus network organization, Ordering Service instances and all external (to Sipher) organizations to environment configuration:"
+	echo "		-e network"
+	echo "		To add a single external (to Sipher) organization data to environment configuration:"
+	echo "		-e <organization-name>"
+	echo
+	echo "	remove-env"
+	echo "		Removes environment data from Sipher configuration"
+	echo "		To remove Cerberus network organization and Ordering Service instances data from environment configuration:"
+	echo "		-e cerb"
+	echo "		To remove all external (to Sipher) organizations data from Sipher environment configuration:"
+	echo "		-e ext"
+	echo "		To remove Cerberus network organization, Ordering Service instances and all external (to Sipher) organizations data from environment configuration:"
+	echo "		-e network"
+	echo "		To remove a single external (to Sipher) organizaion data from environment configuration:"
+	echo "		-e <organization-name>"
+	echo
+	echo
+	echo
+
+
   echo "Usage: "
   echo "  sipherorg.sh <mode> [-c <channel name>] [-t <timeout>] [-d <delay>] [-f <docker-compose-file>] [-s <dbtype>] [-l <language>] [-o <consensus-type>] [-i <imagetag>] [-v]"
   echo "    <mode> - one of 'up', 'down', 'restart', 'generate' or 'upgrade'"
@@ -56,15 +97,6 @@ function printHelp() {
   echo "    -o <consensus-type> - the consensus-type of the ordering service: solo (default) or kafka"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
   echo "    -v - verbose mode"
-  echo "  sipherorg.sh -h (print this message)"
-  echo
-  echo "Typically, one would first generate the required certificates and "
-  echo "genesis block, then bring up the network. e.g.:"
-  echo
-  echo "Taking all defaults:"
-  echo "	cerberusntw.sh generate"
-  echo "	cerberusntw.sh up"
-  echo "	cerberusntw.sh down"
 }
 
 # Ask user for confirmation to proceed
@@ -176,6 +208,101 @@ function checkPrereqs() {
 	done
 }
 
+function addCerberusEnvData() {	
+	# read network data inside network-config/ folder
+	ARCH=$(uname -s | grep Darwin)
+	if [ "$ARCH" == "Darwin" ]; then
+		OPTS="-it"
+	else
+		OPTS="-i"
+	fi
+
+	CURRENT_DIR=$PWD
+
+	OS_CONFIG_FILE=network-config/os-data.json
+	if [ ! -f "$OS_CONFIG_FILE" ]; then
+		echo
+		echo "ERROR: $OS_CONFIG_FILE file not found. Cannot proceed with parsing Ordering Service instances network configuration"
+		exit 1
+	fi
+
+	CERBERUSORG_CONFIG_FILE=network-config/cerberusorg-data.json
+	if [ ! -f "$CERBERUSORG_CONFIG_FILE" ]; then
+		echo
+		echo "ERROR: $CERBERUSORG_CONFIG_FILE file not found. Cannot proceed with parsing Cerberus Organization network configuration"
+		exit 1
+	fi
+
+	source .env
+
+	addOsEnvData
+	addCerberusOrgEnvData
+}
+
+# adds external organization environment data
+function addExternalOrgEnvData() {
+	
+	# read data inside external-orgs folder
+	ARCH=$(uname -s | grep Darwin)
+	if [ "$ARCH" == "Darwin" ]; then
+		OPTS="-it"
+	else
+		OPTS="-i"
+	fi
+
+	CURRENT_DIR=$PWD
+
+	if [ "${EXTERNAL_ORG}" == "all" ]; then
+		# add environment data for all organizations
+		for file in external-orgs/*-data.json; do
+
+			addExternalOrganizationEnvData $file
+		done
+	else
+		# add environment data for a specific organization
+		ORG_CONFIG_FILE="external-orgs/${EXTERNAL_ORG}-data.json"
+		if [ ! -f "$ORG_CONFIG_FILE" ]; then
+			echo
+			echo "ERROR: $ORG_CONFIG_FILE file not found. Cannot proceed with parsing ${EXTERNAL_ORG^} configuration"
+			exit 1
+		fi
+
+		addExternalOrganizationEnvData $ORG_CONFIG_FILE
+	fi
+}
+
+function removeCerberusEnvData() {
+
+	# read network data inside network-config/ folder
+	ARCH=$(uname -s | grep Darwin)
+	if [ "$ARCH" == "Darwin" ]; then
+		OPTS="-it"
+	else
+		OPTS="-i"
+	fi
+
+	CURRENT_DIR=$PWD
+
+	OS_CONFIG_FILE=network-config/os-data.json
+	if [ ! -f "$OS_CONFIG_FILE" ]; then
+		echo
+		echo "ERROR: $OS_CONFIG_FILE file not found. Cannot proceed with parsing Ordering Service instances network configuration"
+		exit 1
+	fi
+
+	CERBERUSORG_CONFIG_FILE=network-config/cerberusorg-data.json
+	if [ ! -f "$CERBERUSORG_CONFIG_FILE" ]; then
+		echo
+		echo "ERROR: $CERBERUSORG_CONFIG_FILE file not found. Cannot proceed with parsing Cerberus Organization network configuration"
+		exit 1
+	fi
+
+	source .env
+	
+	removeOsEnvData
+	removeCerberusOrgEnvData
+}
+
 function checkCerberusOsOrgEnvForSsh() {
 
 	# read network data inside network-config/ folder
@@ -220,20 +347,29 @@ function checkCerberusOsOrgEnvForSsh() {
 	source .env
 }
 
-function checkCerberusOrgEnvForSssh() {
+function removeExternalOrgEnvData() {
 
-	source .env
+	# read data inside external-orgs folder
+	ARCH=$(uname -s | grep Darwin)
+	if [ "$ARCH" == "Darwin" ]; then
+		OPTS="-it"
+	else
+		OPTS="-i"
+	fi
 
-	# check if needed variables are set
-	orgUsernameVar="CERBERUSORG_USERNAME"
-	orgPasswordVar="CERBERUSORG_PASSWORD"
-	orgHostVar="CERBERUSORG_IP"
-	orgHostPathVar="CERBERUSORG_HOSTPATH"
+	CURRENT_DIR=$PWD
 
-	if [ -z "${!orgUsernameVar}" ] || [ -z "${!orgPasswordVar}" ] || [ -z "${!orgHostVar}" ] || [ -z "${!orgHostPathVar}" ]; then
-		echo "Required network environment data is not present. Obtaining ... "
+	if [ "${EXTERNAL_ORG}" == "all" ]; then
+		# remove environment data for all organizations
+		for file in external-orgs/*-data.json; do
+			
+			removeExternalOrganizationEnvData $file
+		done
+	else
+		# remove environment data for a specific organization
+		ORG_CONFIG_FILE="external-orgs/${EXTERNAL_ORG}-data.json"
 
-		addCerberusOrgEnvData
+		removeExternalOrganizationEnvData $ORG_CONFIG_FILE
 	fi
 }
 
@@ -367,7 +503,9 @@ function generateChannelsArtifacts() {
 		echo "Failed to generate Sipher config materials "
 		exit 1
 	fi
+}
 
+function test() {
 	# copy orderer organizations folder from os host
 	ordererPath=$CERBERUS_OS_IP:/home/anniran/server/go/src/cerberus-os/hl/network/crypto-config/ordererOrganizations
 
@@ -674,7 +812,7 @@ COMPOSE_FILE_SIPHER=sipher-config/sipher-org.yaml
 #
 # use golang as the default language for chaincode
 LANGUAGE=golang
-CHANNELS_LIST=''
+LIST=''
 # default image tag
 IMAGETAG="latest"
 # default consensus type
@@ -682,6 +820,8 @@ CONSENSUS_TYPE="kafka"
 
 CHANNEL_NAME=''
 NETWORK_CONNECTION_MODE=''
+EXTERNAL_ORG=''
+ENTITY=''
 
 # Parse commandline args
 if [ "$1" = "-m" ]; then # supports old usage, muscle memory is powerful!
@@ -689,8 +829,14 @@ if [ "$1" = "-m" ]; then # supports old usage, muscle memory is powerful!
 fi
 MODE=$1
 shift
-# Determine whether starting, stopping, restarting, generating or upgrading
-if [ "$MODE" == "up" ]; then
+
+# ./sipher.sh help
+if [ "$MODE" == "help" ]; then
+	EXPMODE="Display help usage message"
+
+
+
+elif [ "$MODE" == "up" ]; then
   EXPMODE="Starting"
 elif [ "$MODE" == "down" ]; then
   EXPMODE="Stopping"
@@ -702,14 +848,18 @@ elif [ "$MODE" == "restart" ]; then
 elif [ "${MODE}" == "configure-connection" ]; then
 	EXPMODE="Display connection cofiguration steps for Sipher organization"
 
-
 # ./sipher.sh generate
 elif [ "${MODE}" == "generate" ]; then
 	EXPMODE="Generating certificates and genesis block"
 
-# ./sipher.sh add-network-env
-elif [ "${MODE}" == "add-network-env" ]; then
-	EXPMODE="Setting network environment variables"
+# ./sipher.sh add-env
+elif [ "${MODE}" == "add-env" ]; then
+	EXPMODE="Adding entity data to environment configuration"
+
+# ./sipher.sh remove-env
+elif [ "${MODE}" == "remove-env" ]; then
+	EXPMODE="Removing entity data from environment configuration"
+
 
 # ./sipher.sh remove-network-env
 elif [ "${MODE}" == "remove-network-env" ]; then
@@ -764,43 +914,46 @@ else
   exit 1
 fi
 
-while getopts "h?c:t:d:e:f:n:s:l:i:v" opt; do
-  case "$opt" in
-  h | \?)
-    printHelp
-    exit 0
-    ;;
-  c)
-    CHANNEL_NAME=$OPTARG
-    ;;
-  t)
-    CLI_TIMEOUT=$OPTARG
-    ;;
-  d)
-    CLI_DELAY=$OPTARG
-    ;;
-  e)
-    ENV_VALUE=$OPTARG
-    ;;
-  f)
-    COMPOSE_FILE=$OPTARG
-    ;;
-  n)
-    NETWORK_CONNECTION_MODE=$OPTARG
-    ;;
-  s)
-    IF_COUCHDB=$OPTARG
-    ;;
-  l)
-    CHANNELS_LIST=$OPTARG
-    ;;
-  i)
-    IMAGETAG=$(go env GOARCH)"-"$OPTARG
-    ;;
-  v)
-    VERBOSE=true
-    ;;
-  esac
+while getopts "h?c:t:d:e:f:n:o:s:l:i:v" opt; do
+	case "$opt" in
+  	h | \?)
+		printHelp
+		exit 0
+		;;
+	c)
+		CHANNEL_NAME=$OPTARG
+		;;
+	t)
+		CLI_TIMEOUT=$OPTARG
+		;;
+	d)
+		CLI_DELAY=$OPTARG
+		;;
+	e)
+		ENTITY=$OPTARG
+		;;
+	f)
+		COMPOSE_FILE=$OPTARG
+		;;
+	n)
+		NETWORK_CONNECTION_MODE=$OPTARG
+		;;
+	o)
+		EXTERNAL_ORG=$OPTARG
+		;;
+	s)
+		IF_COUCHDB=$OPTARG
+		;;
+	l)
+		CHANNELS_LIST=$OPTARG
+		;;
+	i)
+		IMAGETAG=$(go env GOARCH)"-"$OPTARG
+		;;
+	v)
+		VERBOSE=true
+		;;
+	esac
 done
 
 
@@ -811,8 +964,11 @@ echo "${EXPMODE}"
 # ask for confirmation to proceed
 askProceed
 
+if [ "${MODE}" == "help" ]; then
+	printHelp
+
 #Create the network using docker compose
-if [ "${MODE}" == "up" ]; then
+elif [ "${MODE}" == "up" ]; then
 	# check if channel option is provided
 	if [ -z "$CHANNEL_NAME" ]; then
 		echo "Please provide a channel name to connect with '-c' option tag"
@@ -822,7 +978,7 @@ if [ "${MODE}" == "up" ]; then
 	organizationUp $CHANNEL_NAME
 
 elif [ "${MODE}" == "down" ]; then ## Clear the network
-  organizationDown
+	organizationDown
 
 
 
@@ -835,21 +991,68 @@ elif [ "${MODE}" == "configure-connection" ]; then
 	echo $CERBERUS_NETWORK_LOCAL_PATH
 	printConnectionSteps
 
-
 # ./sipher.sh generate
 elif [ "${MODE}" == "generate" ]; then ## Generate Artifacts
 	generateOrgConfiguration
 
+# ./sipher.sh add-env
+elif [ "${MODE}" == "add-env" ]; then
 
-# ./sipher.sh add-network-env
-elif [ "${MODE}" == "add-network-env" ]; then
-	addOsEnvData
-	addCerberusOrgEnvData
+	# check if entity value is provided
+	if [ -z "$ENTITY" ]; then
+		echo "Please provide entity name with '-e' option tag"
+		printHelp
+		exit 1
+	fi
 
-# ./sipher.sh remove-network-env
-elif [ "${MODE}" == "remove-network-env" ]; then
-	removeOsEnvData
-	removeCerberusOrgEnvData
+	if [ "${ENTITY}" == "cerb" ]; then
+		addCerberusEnvData
+
+	elif [ "${ENTITY}" == "ext" ]; then
+		EXTERNAL_ORG="all"
+		addExternalOrgEnvData
+
+	elif [ "${ENTITY}" == "network" ]; then
+		addCerberusEnvData
+
+		EXTERNAL_ORG="all"
+		addExternalOrgEnvData
+	else
+		EXTERNAL_ORG=$ENTITY
+		addExternalOrgEnvData
+	fi
+
+# ./sipher.sh remove-env
+elif [ "${MODE}" == "remove-env" ]; then
+
+	# check if entity value is provided
+	if [ -z "$ENTITY" ]; then
+		echo "Please provide entity name with '-e' option tag"
+		printHelp
+		exit 1
+	fi
+
+	if [ "${ENTITY}" == "cerb" ]; then
+		removeCerberusEnvData
+
+	elif [ "${ENTITY}" == "ext" ]; then
+		EXTERNAL_ORG="all"
+		removeExternalOrgEnvData
+
+	elif [ "${ENTITY}" == "network" ]; then
+		removeCerberusEnvData
+
+		EXTERNAL_ORG="all"
+		removeExternalOrgEnvData
+
+	else 
+		EXTERNAL_ORG=$ENTITY
+		removeExternalOrgEnvData
+	fi
+
+
+
+
 
 # ./sipher.sh add-sipher-env-to-network
 elif [ "${MODE}" == "add-sipher-env-to-network" ]; then
