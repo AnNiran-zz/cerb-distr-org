@@ -77,6 +77,27 @@ function printHelp() {
 	echo "		To remove a single external (to Sipher) organizaion data from environment configuration:"
 	echo "		-e <organization-name>"
 	echo
+	echo "	add-extra-hosts"
+	echo "		Adds extra hosts to Sipher configuration files"
+	echo "		To add extra hosts for Cerberus network and Ordering Service instances:"
+	echo "		-e cerb"
+	echo "		To add extra hosts for all external (to Sipher) organizations to configuration files:"
+	echo "		-e ext"
+	echo "		To add extra hosts for Cerberus network organization, Ordering Service instances and all external (to Sipher) organizations to configuration files:"
+	echo "		-e network"
+	echo "		To add extra hosts for a single external (to Sipher) organization to configuration files:"
+	echo "		-e <organization-name>"
+	echo
+	echo "	remove-extra-hosts"
+	echo "		Removes extra hosts from Sipher configuration files"
+	echo "		To remove Cerberus network organization and Ordering Service instances extra hosts:"
+	echo "		-e cerb"
+	echo "		To remove extra hosts for all external (to Sipher) organizations:"
+	echo "		-e ext"
+	echo "		To remove extra hosts for Cerberus network organization, Ordering Service instances and all external (to Sipher) organizations:"
+	echo "		-e network"
+	echo "		To remove extra hosts for a single external (to Sipher) organization:"
+	echo "		-e <organization-name>"
 	echo
 	echo
 
@@ -209,6 +230,7 @@ function checkPrereqs() {
 }
 
 function addCerberusEnvData() {	
+
 	# read network data inside network-config/ folder
 	ARCH=$(uname -s | grep Darwin)
 	if [ "$ARCH" == "Darwin" ]; then
@@ -303,7 +325,7 @@ function removeCerberusEnvData() {
 	removeCerberusOrgEnvData
 }
 
-function checkCerberusOsOrgEnvForSsh() {
+function checkCerberusEnv() {
 
 	# read network data inside network-config/ folder
 	ARCH=$(uname -s | grep Darwin)
@@ -322,6 +344,13 @@ function checkCerberusOsOrgEnvForSsh() {
 		exit 1
 	fi
 
+	CERBERUSORG_CONFIG_FILE=network-config/cerberusorg-data.json
+	if [ ! -f "$CERBERUSORG_CONFIG_FILE" ]; then
+		echo
+		echo "ERROR: $CERBERUSORG_CONFIG_FILE file not found. Cannot proceed with parsing Cerberus Organization network configuration"
+		exit 1
+	fi
+
 	osinstances=$(jq -r '.os[] | "\(.instances)"' $OS_CONFIG_FILE)
 
 	source .env
@@ -329,7 +358,7 @@ function checkCerberusOsOrgEnvForSsh() {
 	# check if needed variables are set
 	for osinstance in $(echo "${osinstances}" | jq -r '.[] | @base64'); do
 		_jq(){
-			# obtain new environment variables values
+			# check if os label environment variable is set
 			osLabelValue=$(echo "\"$(echo ${osinstance} | base64 --decode | jq -r ${1})\"")
 			osLabelValueStripped=$(echo $osLabelValue | sed 's/"//g')	
 			osLabelVar="${osLabelValueStripped^^}_LABEL"
@@ -337,14 +366,56 @@ function checkCerberusOsOrgEnvForSsh() {
 			if [ -z "${!osLabelVar}" ]; then
 				echo "Required network environment data is not present. Obtaining ... "
 				addOsEnvData
-				addCerberusOrgEnvData
-				exit 0
 			fi
 		}
  		echo $(_jq '.label')
 	done
 
+	# check if cerberus org label environment variable is set
+	orgLabelValue=$(jq -r '.label' $CERBERUSORG_CONFIG_FILE)
+	orgLabelValueStripped=$(echo $orgLabelValue | sed 's/"//g')
+	orgLabelVar="${orgLabelValueStripped^^}_LABEL"
+
+	if [ -z "${!orgLabelVar}" ]; then
+		echo "Required network environment data is not present. Obtaining ... "
+		addCerberusOrgEnvData
+		source .env
+	fi
+}
+
+
+function checkExternalOrgEnvData() {
+
+	ORG_CONFIG_FILE=$1
+
+	# read network data inside network-config/ folder
+	ARCH=$(uname -s | grep Darwin)
+	if [ "$ARCH" == "Darwin" ]; then
+		OPTS="-it"
+	else
+		OPTS="-i"
+	fi
+ 
+	CURRENT_DIR=$PWD
+
+	if [ ! -f "$ORG_CONFIG_FILE" ]; then
+		echo
+		echo "ERROR: $ORG_CONFIG_FILE file not found. Cannot proceed with parsing ${EXTERNAL_ORG^} configuration"
+		exit 1
+	fi
+
 	source .env
+	
+	# check if environment variables for organization are set
+	orgLabelValue=$(jq -r '.label' $ORG_CONFIG_FILE)
+	orgLabelValueStripped=$(echo $orgLabelValue | sed 's/"//g')
+	orgLabelVar="${orgLabelValueStripped^^}_ORG_LABEL"
+
+	if [ -z "${!orgLabelVar}" ]; then
+		echo "Required organization environment data is missing. Obtaining ... "
+		addExternalOrganizationEnvData $ORG_CONFIG_FILE
+		source .env
+	fi
 }
 
 function removeExternalOrgEnvData() {
@@ -369,9 +440,90 @@ function removeExternalOrgEnvData() {
 		# remove environment data for a specific organization
 		ORG_CONFIG_FILE="external-orgs/${EXTERNAL_ORG}-data.json"
 
+		if [ ! -f "$ORG_CONFIG_FILE" ]; then
+			echo
+			echo "ERROR: $ORG_CONFIG_FILE file not found. Cannot proceed with parsing ${EXTERNAL_ORG^} configuration"
+			exit 1
+		fi
+
 		removeExternalOrganizationEnvData $ORG_CONFIG_FILE
 	fi
 }
+
+
+function addExternalOrgExtraHosts() {
+
+	# read data inside external-orgs folder
+	ARCH=$(uname -s | grep Darwin)
+	if [ "$ARCH" == "Darwin" ]; then
+		OPTS="-it"
+	else
+		OPTS="-i"
+ 	fi
+
+	CURRENT_DIR=$PWD
+
+	if [ "${EXTERNAL_ORG}" == "all" ]; then
+		
+		for file in external-orgs/*-data.json; do
+
+			# check if environment data is set, if not - set it
+			checkExternalOrgEnvData $file
+
+			# add external organization extra hosts to configuration
+			addExternalOrganizationExtraHosts $file
+		done
+	else
+	
+		# add environment data for a specific organization
+		ORG_CONFIG_FILE="external-orgs/${EXTERNAL_ORG}-data.json"
+ 
+		if [ ! -f "$ORG_CONFIG_FILE" ]; then
+			echo
+			echo "ERROR: $ORG_CONFIG_FILE file not found. Cannot proceed with parsing ${EXTERNAL_ORG^} configuration"
+			exit 1
+		fi
+
+		# check if exnvironment data is set, if not - set it
+		checkExternalOrgEnvData $ORG_CONFIG_FILE
+
+		# add external data organization extra hosts to configuration
+		addExternalOrganizationExtraHosts $ORG_CONFIG_FILE
+	fi
+}
+
+function removeExternalOrgExtraHosts() {
+
+	# read data inside external-orgs folder
+	ARCH=$(uname -s | grep Darwin)
+	if [ "$ARCH" == "Darwin" ]; then
+		OPTS="-it"
+	else
+		OPTS="-i"
+	fi
+ 
+	CURRENT_DIR=$PWD
+
+ 	if [ "${EXTERNAL_ORG}" == "all" ]; then
+		# remove environment data for all organizations
+		for file in external-orgs/*-data.json; do
+
+			removeExternalOrganizationExtraHosts $file
+		done
+	else
+		# remove environment data for a specific organization
+		ORG_CONFIG_FILE="external-orgs/${EXTERNAL_ORG}-data.json"
+
+		if [ ! -f "$ORG_CONFIG_FILE" ]; then
+			echo
+			echo "ERROR: $ORG_CONFIG_FILE file not found. Cannot proceed with parsing ${EXTERNAL_ORG^} configuration"
+			exit 1
+		fi
+	
+		removeExternalOrganizationExtraHosts $ORG_CONFIG_FILE
+	fi
+}
+
 
 # configuration
 function replacePrivateKey() {
@@ -860,11 +1012,19 @@ elif [ "${MODE}" == "add-env" ]; then
 elif [ "${MODE}" == "remove-env" ]; then
 	EXPMODE="Removing entity data from environment configuration"
 
+# ./sipher.sh add-extra-hosts
+elif [ "${MODE}" == "add-extra-hosts" ]; then
+	EXPMODE="Adding extra hosts to Sipher configuration files"
 
-# ./sipher.sh remove-network-env
-elif [ "${MODE}" == "remove-network-env" ]; then
-	EXPMODE="Removing network environment variables"
+# ./sipher.sh remove-extra-hosts
+elif [ "${MODE}" == "remove-extra-hosts" ]; then
+	EXPMODE="Removing extra hosts from Sipher configuration files"
 
+
+
+
+
+######################################################################################################
 # ./sipher.sh add-sipher-env-to-network
 elif [ "${MODE}" == "add-sipher-env-to-network" ]; then
 	EXPMODE="Adding Sipher environment data to network remotely"
@@ -888,6 +1048,7 @@ elif [ "${MODE}" == "add-inherent-hosts-to-network" ]; then
 # ./sipher.sh remove-inherent-hosts-network
 elif [ "${MODE}" == "remove-inherent-hosts-network" ]; then
 	EXPMODE="Removing Sipher hosts from Cerberus OS and organization containers configuration"
+########################################################################################################
 
 elif [ "${MODE}" == "connect-to-network" ]; then
 	EXPMODE="Connecting Sipher to network channel/channels"
@@ -1050,9 +1211,67 @@ elif [ "${MODE}" == "remove-env" ]; then
 		removeExternalOrgEnvData
 	fi
 
+# ./sipher.sh add-extra-hosts
+elif [ "${MODE}" == "add-extra-hosts" ]; then
+
+	# check if entity value is provided
+	if [ -z "$ENTITY" ]; then
+		echo "Please provide entity name with '-e' option tag"
+		printHelp
+		exit 1
+	fi
+
+	if [ "${ENTITY}" == "cerb" ]; then
+		checkCerberusEnv
+		
+		addCerberusExtraHosts
+
+	elif [ "${ENTITY}" == "ext" ]; then
+		EXTERNAL_ORG="all"
+		addExternalOrgExtraHosts
+
+	elif [ "${ENTITY}" == "network" ]; then
+		checkCerberusEnv
+
+		addCerberusExtraHosts
+
+		EXTERNAL_ORG="all"
+		addExternalOrgExtraHosts
+	else
+		EXTERNAL_ORG=$ENTITY
+		addExternalOrgExtraHosts
+	fi
+
+# ./sipher.sh remove-extra-hosts
+elif [ "${MODE}" == "remove-extra-hosts" ]; then
+
+	# check if entity value is provided
+	if [ -z "$ENTITY" ]; then
+		echo "Please provide entity name with '-e' option tag"
+		printHelp
+		exit 1
+	fi
+
+	if [ "${ENTITY}" == "cerb" ]; then
+		removeCerberusExtraHosts
+
+	elif [ "${ENTITY}" == "ext" ]; then
+		EXTERNAL_ORG="all"
+		removeExternalOrgExtraHosts
+
+	elif [ "${ENTITY}" == "network" ]; then
+		removeCerberusExtraHosts
+
+		EXTERNAL_ORG="all"
+		removeExternalOrgExtraHosts
+	else
+		EXTERNAL_ORG=$ENTITY
+		removeExternalOrgExtraHosts
+	fi
 
 
-
+###########################################################################################
+# functions that call remote scripts
 
 # ./sipher.sh add-sipher-env-to-network
 elif [ "${MODE}" == "add-sipher-env-to-network" ]; then
@@ -1063,16 +1282,6 @@ elif [ "${MODE}" == "add-sipher-env-to-network" ]; then
 elif [ "${MODE}" == "remove-sipher-env-from-network" ]; then
 	removeEnvDataFromNetworkRemotely
 
-# ./sipher.sh add-network-hosts
-elif [ "${MODE}" == "add-network-hosts" ]; then
-	checkCerberusOsOrgEnvForSsh
-	addNetworkHosts
-
-# ./sipher.sh remove-network-hosts
-elif [ "${MODE}" == "remove-network-hosts" ]; then
-	checkCerberusOsOrgEnvForSsh
-	removeNetworkHosts
-
 # ./sipher.sh add-inherent-hosts-to-network
 elif [ "${MODE}" == "add-inherent-hosts-to-network" ]; then
 	addInherentHostsToNetworkRemotely
@@ -1081,6 +1290,8 @@ elif [ "${MODE}" == "add-inherent-hosts-to-network" ]; then
 # ./sipher.sh remove-inherent-hosts-network
 elif [ "${MODE}" == "remove-inherent-hosts-network" ]; then
 	removeInherentHostsFromNetworkRemotely
+
+#############################################################################################
 
 elif [ "${MODE}" == "connect-to-network" ]; then
 
@@ -1115,10 +1326,10 @@ elif [ "${MODE}" == "connect-to-network" ]; then
 
 elif [ "${MODE}" == "test" ]; then
 
-	checkCerberusOsEnvForSsh	
+	echo "this is a test"
 
-elif [ "${MODE}" == "remove" ]; then
-	removeRemoteHosts
+
+
 elif [ "${MODE}" == "connect" ]; then
 
 	# check if channel option is provided

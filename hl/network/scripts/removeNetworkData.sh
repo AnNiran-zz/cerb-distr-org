@@ -144,7 +144,7 @@ function removeExternalOrganizationEnvData() {
 	echo
 }
 
-function removeNetworkHosts() {
+function removeCerberusExtraHosts() {
 
 	source ~/.profile
 
@@ -237,7 +237,7 @@ function removeNetworkHosts() {
 		remainingHostsData=$(yq r --tojson sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts)
 		remainingHosts=$(echo "${remainingHostsData}" | jq -r '.[]')
 
-		if [ -z $remainingHosts ]; then
+		if [ -z "$remainingHosts" ]; then
 			# delete key
 			yq delete --inplace sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts
 		fi
@@ -252,7 +252,83 @@ function removeNetworkHosts() {
 	cd $CURRENT_DIR
 
 	echo
-	echo "### Network hosts successfully removed from Sipher configuration ###"
+	echo "### Cerberus network organization and Ordering Service instances extra hosts successfully removed from Sipher configuration ###"
+}
+
+function removeExternalOrganizationExtraHosts() {
+
+	ORG_CONFIG_FILE=$1
+
+	orgLabelValue=$(jq -r '.label' $ORG_CONFIG_FILE)
+	orgLabelValueStripped=$(echo $orgLabelValue | sed 's/"//g')
+
+	source ~/.profile
+
+	orgContainers=$(jq -r '.containers[]' $ORG_CONFIG_FILE)
+
+	cd sipher-config/
+	sipherContainers=(anchorpr lead0pr lead1pr communicatepr cli)
+
+	for container in "${sipherContainers[@]}"
+	do
+		extraHosts=$(yq r --tojson sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts)
+		extraHostsParsed=$(echo ${extraHosts} | jq '. | to_entries[]')
+		
+		echo "Stopping container ${container}.sipher.cerberus.net ... "
+
+		#docker stop "${container}.sipher.cerberus.net"
+		#sleep 10
+		
+		echo
+		echo "### Removing network hosts from ${container}.sipher.cerberus.net ..."
+
+		if [ "$hosts" == null ]; then
+			echo "No extra hosts to remove from container ${container}"
+		else
+		
+			for orgContainer in $(echo "${orgContainers}" | jq -r '. | @base64'); do
+				_jq(){
+					orgContainerValue=$(echo "$(echo ${orgContainer} | base64 --decode | jq -r ${1})")
+					orgContainerValueStripped=$(echo $orgContainer | sed 's/"//g')
+
+					for extraHost in $(echo "${extraHostParsed}" | jq -r '. | @base64'); do
+						_jq(){
+							key=$(echo "$(echo ${extraHost} | base64 --decode | jq -r ${1})")
+							value=$(echo "$(echo ${extraHost} | base64 --decode | jq -r ${2})")
+
+							valueStripped=$(echo $value | sed 's/"//g')
+							valueContainer=$(echo $valueStripped | sed 's/:.*//g')
+
+							if [ "${orgContainerValueStripped}" == "${valueContainer}" ]; then
+								yq delete --inplace sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts[${key}]
+							fi
+						}
+						echo $(_jq, '.key' '.value')
+					done
+				}
+				echo $(_jq '.container' '.host')
+			done
+		fi
+
+		remainingHostsData=$(yq r --tojson sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts)
+		remainingHosts=$(echo "${remainingHostsData}" | jq -r '.[]')
+		
+		if [ -z "$remainingHosts" ]; then
+			# delete key
+			yq delete --inplace sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts
+		fi
+
+		echo
+		echo "Starting container ${container}.sipher.cerberus.net ..."
+
+		#docker start "${container}.sipher.cerberus.net"
+		#sleep 10
+	done
+
+	cd $CURRENT_DIR
+
+	echo
+	echo "### ${orgLabelValueStripped^} extra hosts has been removed from Sipher configuration files"
 }
 
 function removeEnvVariable() {
