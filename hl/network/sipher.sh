@@ -139,6 +139,16 @@ function askProceed() {
 	esac
 }
 
+function getArch() {
+
+	ARCH=$(uname -s | grep Darwin)
+	if [ "$ARCH" == "Darwin" ]; then
+		OPTS="-it"
+	else
+		OPTS="-i"
+	fi
+}
+
 # Obtain CONTAINER_IDS and remove them
 # TODO Might want to make this optional - could clear other containers
 function clearContainers() {
@@ -232,13 +242,7 @@ function checkPrereqs() {
 function addCerberusEnvData() {	
 
 	# read network data inside network-config/ folder
-	ARCH=$(uname -s | grep Darwin)
-	if [ "$ARCH" == "Darwin" ]; then
-		OPTS="-it"
-	else
-		OPTS="-i"
-	fi
-
+	getArch
 	CURRENT_DIR=$PWD
 
 	OS_CONFIG_FILE=network-config/os-data.json
@@ -265,13 +269,7 @@ function addCerberusEnvData() {
 function addExternalOrgEnvData() {
 	
 	# read data inside external-orgs folder
-	ARCH=$(uname -s | grep Darwin)
-	if [ "$ARCH" == "Darwin" ]; then
-		OPTS="-it"
-	else
-		OPTS="-i"
-	fi
-
+	getArch
 	CURRENT_DIR=$PWD
 
 	if [ "${EXTERNAL_ORG}" == "all" ]; then
@@ -296,13 +294,7 @@ function addExternalOrgEnvData() {
 function removeCerberusEnvData() {
 
 	# read network data inside network-config/ folder
-	ARCH=$(uname -s | grep Darwin)
-	if [ "$ARCH" == "Darwin" ]; then
-		OPTS="-it"
-	else
-		OPTS="-i"
-	fi
-
+	getArch
 	CURRENT_DIR=$PWD
 
 	OS_CONFIG_FILE=network-config/os-data.json
@@ -328,13 +320,7 @@ function removeCerberusEnvData() {
 function checkCerberusEnv() {
 
 	# read network data inside network-config/ folder
-	ARCH=$(uname -s | grep Darwin)
-	if [ "$ARCH" == "Darwin" ]; then
-		OPTS="-it"
-	else
-		OPTS="-i"
-	fi
-
+	getArch
 	CURRENT_DIR=$PWD
 
 	OS_CONFIG_FILE=network-config/os-data.json
@@ -389,13 +375,7 @@ function checkExternalOrgEnvData() {
 	ORG_CONFIG_FILE=$1
 
 	# read network data inside network-config/ folder
-	ARCH=$(uname -s | grep Darwin)
-	if [ "$ARCH" == "Darwin" ]; then
-		OPTS="-it"
-	else
-		OPTS="-i"
-	fi
- 
+	getArch 
 	CURRENT_DIR=$PWD
 
 	if [ ! -f "$ORG_CONFIG_FILE" ]; then
@@ -421,13 +401,7 @@ function checkExternalOrgEnvData() {
 function removeExternalOrgEnvData() {
 
 	# read data inside external-orgs folder
-	ARCH=$(uname -s | grep Darwin)
-	if [ "$ARCH" == "Darwin" ]; then
-		OPTS="-it"
-	else
-		OPTS="-i"
-	fi
-
+	getArch
 	CURRENT_DIR=$PWD
 
 	if [ "${EXTERNAL_ORG}" == "all" ]; then
@@ -454,17 +428,10 @@ function removeExternalOrgEnvData() {
 function addExternalOrgExtraHosts() {
 
 	# read data inside external-orgs folder
-	ARCH=$(uname -s | grep Darwin)
-	if [ "$ARCH" == "Darwin" ]; then
-		OPTS="-it"
-	else
-		OPTS="-i"
- 	fi
-
+	getArch
 	CURRENT_DIR=$PWD
 
-	if [ "${EXTERNAL_ORG}" == "all" ]; then
-		
+	if [ "${EXTERNAL_ORG}" == "all" ]; then	
 		for file in external-orgs/*-data.json; do
 
 			# check if environment data is set, if not - set it
@@ -495,13 +462,7 @@ function addExternalOrgExtraHosts() {
 function removeExternalOrgExtraHosts() {
 
 	# read data inside external-orgs folder
-	ARCH=$(uname -s | grep Darwin)
-	if [ "$ARCH" == "Darwin" ]; then
-		OPTS="-it"
-	else
-		OPTS="-i"
-	fi
- 
+	getArch 
 	CURRENT_DIR=$PWD
 
  	if [ "${EXTERNAL_ORG}" == "all" ]; then
@@ -529,13 +490,7 @@ function removeExternalOrgExtraHosts() {
 function replacePrivateKey() {
 	# sed on MacOSX does not support -i flag with a null extension. We will use
 	# 't' for our back-up's extension and delete it at the end of the function
-	ARCH=$(uname -s | grep Darwin)
-	if [ "$ARCH" == "Darwin" ]; then
-		OPTS="-it"
-	else
-		OPTS="-i"
-	fi
-
+	getArch
 	# Copy the template to the file that will be modified to add the private key
 	cp $COMPOSE_FILE_SIPHER_CA_TEMPLATE $COMPOSE_FILE_SIPHER_CA
 
