@@ -1,4 +1,4 @@
-#htoi !/bin/bash
+#!/bin/bash
 #
 # Copyright IBM Corp All Rights Reserved
 #
@@ -36,7 +36,7 @@ export VERBOSE=false
 . scripts/addNetworkData.sh
 . scripts/removeNetworkData.sh
 . scripts/connectToNetwork.sh
-
+. scripts/addSipherData.sh
 
 # Print the usage message
 function printHelp() {
@@ -239,84 +239,6 @@ function checkPrereqs() {
 	done
 }
 
-function addCerberusEnvData() {	
-
-	# read network data inside network-config/ folder
-	getArch
-	CURRENT_DIR=$PWD
-
-	OS_CONFIG_FILE=network-config/os-data.json
-	if [ ! -f "$OS_CONFIG_FILE" ]; then
-		echo
-		echo "ERROR: $OS_CONFIG_FILE file not found. Cannot proceed with parsing Ordering Service instances network configuration"
-		exit 1
-	fi
-
-	CERBERUSORG_CONFIG_FILE=network-config/cerberusorg-data.json
-	if [ ! -f "$CERBERUSORG_CONFIG_FILE" ]; then
-		echo
-		echo "ERROR: $CERBERUSORG_CONFIG_FILE file not found. Cannot proceed with parsing Cerberus Organization network configuration"
-		exit 1
-	fi
-
-	source .env
-
-	addOsEnvData
-	addCerberusOrgEnvData
-}
-
-# adds external organization environment data
-function addExternalOrgEnvData() {
-	
-	# read data inside external-orgs folder
-	getArch
-	CURRENT_DIR=$PWD
-
-	if [ "${EXTERNAL_ORG}" == "all" ]; then
-		# add environment data for all organizations
-		for file in external-orgs/*-data.json; do
-
-			addExternalOrganizationEnvData $file
-		done
-	else
-		# add environment data for a specific organization
-		ORG_CONFIG_FILE="external-orgs/${EXTERNAL_ORG}-data.json"
-		if [ ! -f "$ORG_CONFIG_FILE" ]; then
-			echo
-			echo "ERROR: $ORG_CONFIG_FILE file not found. Cannot proceed with parsing ${EXTERNAL_ORG^} configuration"
-			exit 1
-		fi
-
-		addExternalOrganizationEnvData $ORG_CONFIG_FILE
-	fi
-}
-
-function removeCerberusEnvData() {
-
-	# read network data inside network-config/ folder
-	getArch
-	CURRENT_DIR=$PWD
-
-	OS_CONFIG_FILE=network-config/os-data.json
-	if [ ! -f "$OS_CONFIG_FILE" ]; then
-		echo
-		echo "ERROR: $OS_CONFIG_FILE file not found. Cannot proceed with parsing Ordering Service instances network configuration"
-		exit 1
-	fi
-
-	CERBERUSORG_CONFIG_FILE=network-config/cerberusorg-data.json
-	if [ ! -f "$CERBERUSORG_CONFIG_FILE" ]; then
-		echo
-		echo "ERROR: $CERBERUSORG_CONFIG_FILE file not found. Cannot proceed with parsing Cerberus Organization network configuration"
-		exit 1
-	fi
-
-	source .env
-	
-	removeOsEnvData
-	removeCerberusOrgEnvData
-}
-
 function checkCerberusEnv() {
 
 	# read network data inside network-config/ folder
@@ -486,6 +408,7 @@ function removeExternalOrgExtraHosts() {
 }
 
 
+
 # configuration
 function replacePrivateKey() {
 	# sed on MacOSX does not support -i flag with a null extension. We will use
@@ -635,6 +558,26 @@ function generateOrgConfiguration() {
 		replacePrivateKey
 		generateChannelsArtifacts
 	fi		
+}
+
+function addSipherEnvDataCerberus() {
+
+	checkCerberusEnv
+
+#	checkSipherConfigFilesOnCerberusMachines
+
+	addSipherEnvToCerberusMachines
+
+
+			#sshpass -p "${!osPasswordVar}" ssh ${!osUsernameVar}@${!osHostVar} "cd ${!osPathVar}hl/network && ./operatecntw.sh add-org-env -o sipher"
+			#result=$?
+			#echo $result
+
+		
+}
+
+function addSipherEnvDataExternalOrg() {
+	echo "hello"
 }
 
 function addEnvDataToNetworkRemotely() {
@@ -976,7 +919,9 @@ elif [ "${MODE}" == "remove-extra-hosts" ]; then
 	EXPMODE="Removing extra hosts from Sipher configuration files"
 
 
-
+# ./sipher.sh add-s-env
+elif [ "${MODE}" == "add-s-env" ]; then
+	EXPMODE="Add Sipher environment variables to remote hosts"
 
 
 ######################################################################################################
@@ -1122,20 +1067,29 @@ elif [ "${MODE}" == "add-env" ]; then
 	fi
 
 	if [ "${ENTITY}" == "cerb" ]; then
-		addCerberusEnvData
+		# add cerberus env data
+		bash scripts/addCerberusEnvData.sh
 
 	elif [ "${ENTITY}" == "ext" ]; then
-		EXTERNAL_ORG="all"
-		addExternalOrgEnvData
+		# add all external organizaitons env data
+		for file in external-orgs/*-data.json; do
+                        bash scripts/addExternalOrgEnvData.sh $file
+                done
 
 	elif [ "${ENTITY}" == "network" ]; then
-		addCerberusEnvData
+		# add cerberus env data
+		bash scripts/addCerberusEnvData.sh
 
-		EXTERNAL_ORG="all"
-		addExternalOrgEnvData
+		# add all external organizaitons env data
+		for file in external-orgs/*-data.json; do
+                        bash scripts/addExternalOrgEnvData.sh $file
+                done
+
 	else
-		EXTERNAL_ORG=$ENTITY
-		addExternalOrgEnvData
+		# add external organization env data
+		orgConfigFile="external-orgs/${ENTITY}-data.json"
+		
+		bash scripts/addExternalOrgEnvData.sh $orgConfigFile
 	fi
 
 # ./sipher.sh remove-env
@@ -1149,7 +1103,8 @@ elif [ "${MODE}" == "remove-env" ]; then
 	fi
 
 	if [ "${ENTITY}" == "cerb" ]; then
-		removeCerberusEnvData
+		# remove cerberus env data
+		bash scripts/removeCerberusEnvData.sh
 
 	elif [ "${ENTITY}" == "ext" ]; then
 		EXTERNAL_ORG="all"
@@ -1224,7 +1179,32 @@ elif [ "${MODE}" == "remove-extra-hosts" ]; then
 		removeExternalOrgExtraHosts
 	fi
 
+# ./sipher.sh add-s-env
+elif [ "${MODE}" == "add-s-env" ]; then
 
+	# check if entity value is provided
+	if [ -z "$ENTITY" ]; then
+		echo "Please provide entity name with '-e' option tag"
+		printHelp
+		exit 1
+	fi
+
+	if [ "${ENTITY}" == "cerb" ]; then
+		addSipherEnvDataCerberus
+
+	elif [ "${ENTITY}" == "ext" ]; then
+		EXTERNAL_ORG="all"
+
+	elif [ "${ENTITY}" == "network" ]; then
+		addSipherEnvDataCerberus
+
+		EXTERNAL_ORG="all"
+
+
+	else
+		EXTERNAL_ORG=$ENTITY
+	fi
+	
 ###########################################################################################
 # functions that call remote scripts
 
