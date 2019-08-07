@@ -34,9 +34,7 @@ export VERBOSE=false
 
 . scripts/connectionSteps.sh
 . scripts/addNetworkData.sh
-. scripts/removeNetworkData.sh
 . scripts/connectToNetwork.sh
-. scripts/addSipherData.sh
 
 # Print the usage message
 function printHelp() {
@@ -238,176 +236,6 @@ function checkPrereqs() {
 		fi
 	done
 }
-
-function checkCerberusEnv() {
-
-	# read network data inside network-config/ folder
-	getArch
-	CURRENT_DIR=$PWD
-
-	OS_CONFIG_FILE=network-config/os-data.json
-	if [ ! -f "$OS_CONFIG_FILE" ]; then
-		echo
-		echo "ERROR: $OS_CONFIG_FILE file not found. Cannot proceed with parsing network configuration"
-		exit 1
-	fi
-
-	CERBERUSORG_CONFIG_FILE=network-config/cerberusorg-data.json
-	if [ ! -f "$CERBERUSORG_CONFIG_FILE" ]; then
-		echo
-		echo "ERROR: $CERBERUSORG_CONFIG_FILE file not found. Cannot proceed with parsing Cerberus Organization network configuration"
-		exit 1
-	fi
-
-	osinstances=$(jq -r '.os[] | "\(.instances)"' $OS_CONFIG_FILE)
-
-	source .env
-
-	# check if needed variables are set
-	for osinstance in $(echo "${osinstances}" | jq -r '.[] | @base64'); do
-		_jq(){
-			# check if os label environment variable is set
-			osLabelValue=$(echo "\"$(echo ${osinstance} | base64 --decode | jq -r ${1})\"")
-			osLabelValueStripped=$(echo $osLabelValue | sed 's/"//g')	
-			osLabelVar="${osLabelValueStripped^^}_LABEL"
-
-			if [ -z "${!osLabelVar}" ]; then
-				echo "Required network environment data is not present. Obtaining ... "
-				addOsEnvData
-			fi
-		}
- 		echo $(_jq '.label')
-	done
-
-	# check if cerberus org label environment variable is set
-	orgLabelValue=$(jq -r '.label' $CERBERUSORG_CONFIG_FILE)
-	orgLabelValueStripped=$(echo $orgLabelValue | sed 's/"//g')
-	orgLabelVar="${orgLabelValueStripped^^}_LABEL"
-
-	if [ -z "${!orgLabelVar}" ]; then
-		echo "Required network environment data is not present. Obtaining ... "
-		addCerberusOrgEnvData
-		source .env
-	fi
-}
-
-
-function checkExternalOrgEnvData() {
-
-	ORG_CONFIG_FILE=$1
-
-	# read network data inside network-config/ folder
-	getArch 
-	CURRENT_DIR=$PWD
-
-	if [ ! -f "$ORG_CONFIG_FILE" ]; then
-		echo
-		echo "ERROR: $ORG_CONFIG_FILE file not found. Cannot proceed with parsing ${EXTERNAL_ORG^} configuration"
-		exit 1
-	fi
-
-	source .env
-	
-	# check if environment variables for organization are set
-	orgLabelValue=$(jq -r '.label' $ORG_CONFIG_FILE)
-	orgLabelValueStripped=$(echo $orgLabelValue | sed 's/"//g')
-	orgLabelVar="${orgLabelValueStripped^^}_ORG_LABEL"
-
-	if [ -z "${!orgLabelVar}" ]; then
-		echo "Required organization environment data is missing. Obtaining ... "
-		addExternalOrganizationEnvData $ORG_CONFIG_FILE
-		source .env
-	fi
-}
-
-function removeExternalOrgEnvData() {
-
-	# read data inside external-orgs folder
-	getArch
-	CURRENT_DIR=$PWD
-
-	if [ "${EXTERNAL_ORG}" == "all" ]; then
-		# remove environment data for all organizations
-		for file in external-orgs/*-data.json; do
-			
-			removeExternalOrganizationEnvData $file
-		done
-	else
-		# remove environment data for a specific organization
-		ORG_CONFIG_FILE="external-orgs/${EXTERNAL_ORG}-data.json"
-
-		if [ ! -f "$ORG_CONFIG_FILE" ]; then
-			echo
-			echo "ERROR: $ORG_CONFIG_FILE file not found. Cannot proceed with parsing ${EXTERNAL_ORG^} configuration"
-			exit 1
-		fi
-
-		removeExternalOrganizationEnvData $ORG_CONFIG_FILE
-	fi
-}
-
-
-function addExternalOrgExtraHosts() {
-
-	# read data inside external-orgs folder
-	getArch
-	CURRENT_DIR=$PWD
-
-	if [ "${EXTERNAL_ORG}" == "all" ]; then	
-		for file in external-orgs/*-data.json; do
-
-			# check if environment data is set, if not - set it
-			checkExternalOrgEnvData $file
-
-			# add external organization extra hosts to configuration
-			addExternalOrganizationExtraHosts $file
-		done
-	else
-	
-		# add environment data for a specific organization
-		ORG_CONFIG_FILE="external-orgs/${EXTERNAL_ORG}-data.json"
- 
-		if [ ! -f "$ORG_CONFIG_FILE" ]; then
-			echo
-			echo "ERROR: $ORG_CONFIG_FILE file not found. Cannot proceed with parsing ${EXTERNAL_ORG^} configuration"
-			exit 1
-		fi
-
-		# check if exnvironment data is set, if not - set it
-		checkExternalOrgEnvData $ORG_CONFIG_FILE
-
-		# add external data organization extra hosts to configuration
-		addExternalOrganizationExtraHosts $ORG_CONFIG_FILE
-	fi
-}
-
-function removeExternalOrgExtraHosts() {
-
-	# read data inside external-orgs folder
-	getArch 
-	CURRENT_DIR=$PWD
-
- 	if [ "${EXTERNAL_ORG}" == "all" ]; then
-		# remove environment data for all organizations
-		for file in external-orgs/*-data.json; do
-
-			removeExternalOrganizationExtraHosts $file
-		done
-	else
-		# remove environment data for a specific organization
-		ORG_CONFIG_FILE="external-orgs/${EXTERNAL_ORG}-data.json"
-
-		if [ ! -f "$ORG_CONFIG_FILE" ]; then
-			echo
-			echo "ERROR: $ORG_CONFIG_FILE file not found. Cannot proceed with parsing ${EXTERNAL_ORG^} configuration"
-			exit 1
-		fi
-	
-		removeExternalOrganizationExtraHosts $ORG_CONFIG_FILE
-	fi
-}
-
-
 
 # configuration
 function replacePrivateKey() {
@@ -1107,18 +935,25 @@ elif [ "${MODE}" == "remove-env" ]; then
 		bash scripts/removeCerberusEnvData.sh
 
 	elif [ "${ENTITY}" == "ext" ]; then
-		EXTERNAL_ORG="all"
-		removeExternalOrgEnvData
+		# remove all external organizations environment data
+		for file in external-orgs/*-data.json; do
+			bash scripts/removeExternalOrgEnvData.sh $file
+		done		
 
 	elif [ "${ENTITY}" == "network" ]; then
-		removeCerberusEnvData
+                # remove cerberus env data
+                bash scripts/removeCerberusEnvData.sh
 
-		EXTERNAL_ORG="all"
-		removeExternalOrgEnvData
+		# remove all external organizations environment data
+                for file in external-orgs/*-data.json; do
+                        bash scripts/removeExternalOrgEnvData.sh $file
+                done
 
 	else 
-		EXTERNAL_ORG=$ENTITY
-		removeExternalOrgEnvData
+		# remove external organization environment data
+		orgConfigFile="external-orgs/${ENTITY}-data.json"
+		
+		bash scripts/removeExternalOrgEnvData.sh $orgConfigFile
 	fi
 
 # ./sipher.sh add-extra-hosts
@@ -1132,24 +967,29 @@ elif [ "${MODE}" == "add-extra-hosts" ]; then
 	fi
 
 	if [ "${ENTITY}" == "cerb" ]; then
-		checkCerberusEnv
-		
-		addCerberusExtraHosts
+		# add cerberus extra hosts
+		bash scripts/addCerberusExtraHosts.sh
 
 	elif [ "${ENTITY}" == "ext" ]; then
-		EXTERNAL_ORG="all"
-		addExternalOrgExtraHosts
+		# add all external organization extra hosts
+		for file in external-orgs/*-data.json; do
+			bash scripts/addExternalOrgExtraHosts.sh $file
+		done
 
 	elif [ "${ENTITY}" == "network" ]; then
-		checkCerberusEnv
+		# add cerberus extra hosts
+		bash scripts/addCerberusExtraHosts.sh
 
-		addCerberusExtraHosts
+                # add all external organization extra hosts
+                for file in external-orgs/*-data.json; do
+                        bash scripts/addExternalOrgExtraHosts.sh $file
+                done
 
-		EXTERNAL_ORG="all"
-		addExternalOrgExtraHosts
 	else
-		EXTERNAL_ORG=$ENTITY
-		addExternalOrgExtraHosts
+		# add external organization extra hosts
+		orgConfigFile="external-orgs/${ENTITY}-data.json"
+
+		bash scripts/addExternalOrgExtraHosts.sh $orgConfigFile
 	fi
 
 # ./sipher.sh remove-extra-hosts
@@ -1163,20 +1003,29 @@ elif [ "${MODE}" == "remove-extra-hosts" ]; then
 	fi
 
 	if [ "${ENTITY}" == "cerb" ]; then
-		removeCerberusExtraHosts
+		# remove cerberus extra hosts
+		bash scripts/removeCerberusExtraHosts.sh
 
 	elif [ "${ENTITY}" == "ext" ]; then
-		EXTERNAL_ORG="all"
-		removeExternalOrgExtraHosts
+		# remove all external organizations extra hosts
+		for file in external-orgs/*-data.json; do
+			bash scripts/removeExternalOrgExtraHosts.sh $file
+		done
 
 	elif [ "${ENTITY}" == "network" ]; then
-		removeCerberusExtraHosts
+                # remove cerberus extra hosts
+                bash scripts/removeCerberusExtraHosts.sh
 
-		EXTERNAL_ORG="all"
-		removeExternalOrgExtraHosts
+                # remove all external organizations extra hosts
+                for file in external-orgs/*-data.json; do
+                        bash scripts/removeExternalOrgExtraHosts.sh $file
+                done
+
 	else
-		EXTERNAL_ORG=$ENTITY
-		removeExternalOrgExtraHosts
+		# remove external organization extra hosts
+		orgConfigFile="external-orgs/${ENTITY}-data.json"
+
+		bash scripts/removeExternalOrgExtraHosts $orgConfigFile
 	fi
 
 # ./sipher.sh add-s-env

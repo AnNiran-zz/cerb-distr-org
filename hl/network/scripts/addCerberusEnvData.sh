@@ -47,9 +47,10 @@ if [ ! -f "$CERBERUSORG_CONFIG_FILE" ]; then
 	exit 1
 fi
 
-osinstances=$(jq -r '.os[] | "\(.instances)"' $OS_CONFIG_FILE)
-
+source ~/.profile
 source .env
+
+osinstances=$(jq -r '.os[] | "\(.instances)"' $OS_CONFIG_FILE)
 
 for osinstance in $(echo "${osinstances}" | jq -r '.[] | @base64'); do
 	_jq(){
