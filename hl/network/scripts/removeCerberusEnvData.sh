@@ -4,6 +4,10 @@ function removeEnvVariable() {
         varName=$1
         currentValue=$2
 
+	echo "here is what is received:"
+	echo $varname
+	echo $currentValue
+
         if [ -z "$currentValue" ]; then
                 echo "$varName is not present"
         else

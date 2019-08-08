@@ -12,7 +12,7 @@
 				},
 				{
 					"label": "osinstance1",
-					"container": "osinstance2.cerberus.net",
+					"container": "osinstance1.cerberus.net",
 					"host": "159.203.35.156",
 					"username": "anniran",
 					"password": "9anna8925lva",

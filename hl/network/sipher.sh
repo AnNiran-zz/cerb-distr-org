@@ -748,9 +748,12 @@ elif [ "${MODE}" == "remove-extra-hosts" ]; then
 
 
 # ./sipher.sh add-s-env
-elif [ "${MODE}" == "add-s-env" ]; then
+elif [ "${MODE}" == "add-env-r" ]; then
 	EXPMODE="Add Sipher environment variables to remote hosts"
 
+# ./sipher.sh remove-env-r
+elif [ "${MODE}" == "remove-env-r" ]; then
+	EXPMODE="Remove Sipher environment from remote machines"
 
 ######################################################################################################
 # ./sipher.sh add-sipher-env-to-network
@@ -1028,8 +1031,12 @@ elif [ "${MODE}" == "remove-extra-hosts" ]; then
 		bash scripts/removeExternalOrgExtraHosts $orgConfigFile
 	fi
 
+###################################################################
+# Remote operations
+# Following starts scripts on remote host machines and perform actions on behalf of organizations hosts
+
 # ./sipher.sh add-s-env
-elif [ "${MODE}" == "add-s-env" ]; then
+elif [ "${MODE}" == "add-env-r" ]; then
 
 	# check if entity value is provided
 	if [ -z "$ENTITY" ]; then
@@ -1039,41 +1046,45 @@ elif [ "${MODE}" == "add-s-env" ]; then
 	fi
 
 	if [ "${ENTITY}" == "cerb" ]; then
-		addSipherEnvDataCerberus
+		# add Sipher environment data to cerberus network machines
+		bash scripts/addSipherDataToCerberus.sh "env"
 
 	elif [ "${ENTITY}" == "ext" ]; then
-		EXTERNAL_ORG="all"
+		# add Sipher environment data to all external organizations machines
+		for file in external-orgs/*-data.json; do
+			bash scripts/addSipherDataToExternalOrg.sh $file "env"
+		done
 
 	elif [ "${ENTITY}" == "network" ]; then
-		addSipherEnvDataCerberus
+		# add Sipher environment data to cerberus network machines
+                bash scripts/addSipherDataToCerberus.sh "env"
 
-		EXTERNAL_ORG="all"
-
+		# add Sipher environment data to all external organizations machines
+                for file in external-orgs/*-data.json; do
+                        bash scripts/addSipherDataToExternalOrg.sh $file "env"
+                done
 
 	else
-		EXTERNAL_ORG=$ENTITY
+		# add Sipher environment data to external organization machines
+		orgConfigFile="external-orgs/${ENTITY}-data.json"
+
+		bash scripts/addSipherDataToExternalOrg.sh $orgConfigFile "env"
 	fi
-	
-###########################################################################################
-# functions that call remote scripts
 
-# ./sipher.sh add-sipher-env-to-network
-elif [ "${MODE}" == "add-sipher-env-to-network" ]; then
-	addEnvDataToNetworkRemotely
+elif [ "${MODE}" == "remove-env-r" ]; then
 
-# remove sipher nevironment data from network remotely -> remove-senvfromnet-remotely	
-# ./sipher.sh remove-senvfromnet-remotely
-elif [ "${MODE}" == "remove-sipher-env-from-network" ]; then
-	removeEnvDataFromNetworkRemotely
+	# check if entity value is provided
+        if [ -z "$ENTITY" ]; then
+                echo "Please provide entity name with '-e' option tag"
+                printHelp
+                exit 1
+        fi
 
-# ./sipher.sh add-inherent-hosts-to-network
-elif [ "${MODE}" == "add-inherent-hosts-to-network" ]; then
-	addInherentHostsToNetworkRemotely
+        if [ "${ENTITY}" == "cerb" ]; then
+                # add Sipher environment data to cerberus network machines
+                bash scripts/removeSipherDataFromCerberus.sh "env"
+	fi
 
-
-# ./sipher.sh remove-inherent-hosts-network
-elif [ "${MODE}" == "remove-inherent-hosts-network" ]; then
-	removeInherentHostsFromNetworkRemotely
 
 #############################################################################################
 

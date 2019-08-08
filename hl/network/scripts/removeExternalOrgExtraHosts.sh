@@ -73,15 +73,7 @@ for container in "${sipherContainers[@]}"; do
 
 	extraHosts=$(yq r --tojson sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts)
 	extraHostsParsed=$(echo ${extraHosts} | jq '. | to_entries[]')
-
-	echo "Stopping container ${container}.sipher.cerberus.net ... "
-
-	#docker stop "${container}.sipher.cerberus.net"
-	#sleep 10
-
-	echo
-	echo "### Removing network hosts from ${container}.sipher.cerberus.net ..."
-
+	
 	if [ "$extraHosts" == null ]; then
 		echo "No extra hosts to remove from container ${container}"
 	else

@@ -33,10 +33,26 @@ services:
     depends_on:
     - couchdb.anchorpr.sipher
     extra_hosts:
+    - osinstance0.cerberus.net:159.203.35.156
     - osinstance1.cerberus.net:159.203.35.156
+    - osinstance2.cerberus.net:159.203.35.156
     - osinstance3.cerberus.net:159.203.35.156
+    - osinstance4.cerberus.net:159.203.35.156
     - anchorpr.cerberusorg.cerberus.net:159.203.35.156
+    - leadpr.cerberusorg.cerberus.net:159.203.35.156
     - communicatepr.cerberusorg.cerberus.net:159.203.35.156
+    - anchorpr.violet.cerberus.net:000.11.000.111
+    - lead0pr.violet.cerberus.net:000.11.000.111
+    - lead1pr.violet.cerberus.net:000.11.000.111
+    - communicatepr.violet.cerberus.net:000.11.000.111
+    - anchorpr.ghost.cerberus.net:000.11.000.111
+    - lead0pr.ghost.cerberus.net:000.11.000.111
+    - lead1pr.ghost.cerberus.net:000.11.000.111
+    - communicatepr.ghost.cerberus.net:000.11.000.111
+    - anchorpr.whitebox.cerberus.net:149.28.196.252
+    - lead0pr.whitebox.cerberus.net:149.28.196.252
+    - lead1pr.whitebox.cerberus.net:149.28.196.252
+    - communicatepr.whitebox.cerberus.net:149.28.196.252
   couchdb.lead0pr.sipher:
     container_name: couchdb.lead0pr.sipher
     image: hyperledger/fabric-couchdb:$IMAGE_TAG
@@ -59,10 +75,26 @@ services:
     depends_on:
     - couchdb.lead0pr.sipher
     extra_hosts:
+    - osinstance0.cerberus.net:159.203.35.156
     - osinstance1.cerberus.net:159.203.35.156
+    - osinstance2.cerberus.net:159.203.35.156
     - osinstance3.cerberus.net:159.203.35.156
+    - osinstance4.cerberus.net:159.203.35.156
     - anchorpr.cerberusorg.cerberus.net:159.203.35.156
+    - leadpr.cerberusorg.cerberus.net:159.203.35.156
     - communicatepr.cerberusorg.cerberus.net:159.203.35.156
+    - anchorpr.violet.cerberus.net:000.11.000.111
+    - lead0pr.violet.cerberus.net:000.11.000.111
+    - lead1pr.violet.cerberus.net:000.11.000.111
+    - communicatepr.violet.cerberus.net:000.11.000.111
+    - anchorpr.ghost.cerberus.net:000.11.000.111
+    - lead0pr.ghost.cerberus.net:000.11.000.111
+    - lead1pr.ghost.cerberus.net:000.11.000.111
+    - communicatepr.ghost.cerberus.net:000.11.000.111
+    - anchorpr.whitebox.cerberus.net:149.28.196.252
+    - lead0pr.whitebox.cerberus.net:149.28.196.252
+    - lead1pr.whitebox.cerberus.net:149.28.196.252
+    - communicatepr.whitebox.cerberus.net:149.28.196.252
   couchdb.lead1pr.sipher:
     container_name: couchdb.lead1pr.sipher
     image: hyperledger/fabric-couchdb:$IMAGE_TAG
@@ -85,10 +117,26 @@ services:
     depends_on:
     - couchdb.lead1pr.sipher
     extra_hosts:
+    - osinstance0.cerberus.net:159.203.35.156
     - osinstance1.cerberus.net:159.203.35.156
+    - osinstance2.cerberus.net:159.203.35.156
     - osinstance3.cerberus.net:159.203.35.156
+    - osinstance4.cerberus.net:159.203.35.156
     - anchorpr.cerberusorg.cerberus.net:159.203.35.156
+    - leadpr.cerberusorg.cerberus.net:159.203.35.156
     - communicatepr.cerberusorg.cerberus.net:159.203.35.156
+    - anchorpr.violet.cerberus.net:000.11.000.111
+    - lead0pr.violet.cerberus.net:000.11.000.111
+    - lead1pr.violet.cerberus.net:000.11.000.111
+    - communicatepr.violet.cerberus.net:000.11.000.111
+    - anchorpr.ghost.cerberus.net:000.11.000.111
+    - lead0pr.ghost.cerberus.net:000.11.000.111
+    - lead1pr.ghost.cerberus.net:000.11.000.111
+    - communicatepr.ghost.cerberus.net:000.11.000.111
+    - anchorpr.whitebox.cerberus.net:149.28.196.252
+    - lead0pr.whitebox.cerberus.net:149.28.196.252
+    - lead1pr.whitebox.cerberus.net:149.28.196.252
+    - communicatepr.whitebox.cerberus.net:149.28.196.252
   couchdb.communicatepr.sipher:
     container_name: couchdb.communicatepr.sipher
     image: hyperledger/fabric-couchdb:$IMAGE_TAG
@@ -111,10 +159,26 @@ services:
     depends_on:
     - couchdb.communicatepr.sipher
     extra_hosts:
+    - osinstance0.cerberus.net:159.203.35.156
     - osinstance1.cerberus.net:159.203.35.156
+    - osinstance2.cerberus.net:159.203.35.156
     - osinstance3.cerberus.net:159.203.35.156
+    - osinstance4.cerberus.net:159.203.35.156
     - anchorpr.cerberusorg.cerberus.net:159.203.35.156
+    - leadpr.cerberusorg.cerberus.net:159.203.35.156
     - communicatepr.cerberusorg.cerberus.net:159.203.35.156
+    - anchorpr.violet.cerberus.net:000.11.000.111
+    - lead0pr.violet.cerberus.net:000.11.000.111
+    - lead1pr.violet.cerberus.net:000.11.000.111
+    - communicatepr.violet.cerberus.net:000.11.000.111
+    - anchorpr.ghost.cerberus.net:000.11.000.111
+    - lead0pr.ghost.cerberus.net:000.11.000.111
+    - lead1pr.ghost.cerberus.net:000.11.000.111
+    - communicatepr.ghost.cerberus.net:000.11.000.111
+    - anchorpr.whitebox.cerberus.net:149.28.196.252
+    - lead0pr.whitebox.cerberus.net:149.28.196.252
+    - lead1pr.whitebox.cerberus.net:149.28.196.252
+    - communicatepr.whitebox.cerberus.net:149.28.196.252
   couchdb.execute0pr.sipher:
     container_name: couchdb.execute0pr.sipher
     image: hyperledger/fabric-couchdb:$IMAGE_TAG
@@ -236,7 +300,23 @@ services:
     networks:
     - cerberusntw
     extra_hosts:
+    - osinstance0.cerberus.net:159.203.35.156
     - osinstance1.cerberus.net:159.203.35.156
+    - osinstance2.cerberus.net:159.203.35.156
     - osinstance3.cerberus.net:159.203.35.156
+    - osinstance4.cerberus.net:159.203.35.156
     - anchorpr.cerberusorg.cerberus.net:159.203.35.156
+    - leadpr.cerberusorg.cerberus.net:159.203.35.156
     - communicatepr.cerberusorg.cerberus.net:159.203.35.156
+    - anchorpr.violet.cerberus.net:000.11.000.111
+    - lead0pr.violet.cerberus.net:000.11.000.111
+    - lead1pr.violet.cerberus.net:000.11.000.111
+    - communicatepr.violet.cerberus.net:000.11.000.111
+    - anchorpr.ghost.cerberus.net:000.11.000.111
+    - lead0pr.ghost.cerberus.net:000.11.000.111
+    - lead1pr.ghost.cerberus.net:000.11.000.111
+    - communicatepr.ghost.cerberus.net:000.11.000.111
+    - anchorpr.whitebox.cerberus.net:149.28.196.252
+    - lead0pr.whitebox.cerberus.net:149.28.196.252
+    - lead1pr.whitebox.cerberus.net:149.28.196.252
+    - communicatepr.whitebox.cerberus.net:149.28.196.252

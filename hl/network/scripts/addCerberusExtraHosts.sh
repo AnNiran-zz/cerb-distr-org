@@ -61,15 +61,15 @@ for osinstance in $(echo "${osinstances}" | jq -r '.[] | @base64'); do
 done
 
 # check if cerberus org label environment variable is set
-orgLabelValue=$(jq -r '.label' $CERBERUSORG_CONFIG_FILE)
-orgLabelValueStripped=$(echo $orgLabelValue | sed 's/"//g')
-orgLabelVar="${orgLabelValueStripped^^}_LABEL"
+#orgLabelValue=$(jq -r '.label' $CERBERUSORG_CONFIG_FILE)
+#orgLabelValueStripped=$(echo $orgLabelValue | sed 's/"//g')
+#orgLabelVar="${orgLabelValueStripped^^}_LABEL"
 
-if [ -z "${!orgLabelVar}" ]; then
-	echo "Required network environment data is not present. Obtaining ... "
-	bash scripts/addCerberusEnvData.sh
-	source .env
-fi
+#if [ -z "${!orgLabelVar}" ]; then
+#	echo "Required network environment data is not present. Obtaining ... "
+#	bash scripts/addCerberusEnvData.sh
+#	source .env
+#fi
 
 cerberusOrgContainers=$(jq -r '.containers[]' $CERBERUSORG_CONFIG_FILE)
 
