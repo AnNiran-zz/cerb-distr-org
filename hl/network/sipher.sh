@@ -33,7 +33,6 @@ export FABRIC_CFG_PATH=${PWD}
 export VERBOSE=false
 
 . scripts/connectionSteps.sh
-. scripts/addNetworkData.sh
 . scripts/connectToNetwork.sh
 
 # Print the usage message
@@ -97,7 +96,74 @@ function printHelp() {
 	echo "		To remove extra hosts for a single external (to Sipher) organization:"
 	echo "		-e <organization-name>"
 	echo
+	echo "	Operations running on remote host machines:"
+	echo "	add-env-r"
+	echo "		Adds Sipher environment data to remote machines"
+	echo "		To add environment data to Cerberus network organization and Orderins Service instances remote hosts:"
+	echo "		-e cerb"
+	echo "		To add environment data to all external (to Sipher) organizations:"
+	echo "		-e ext"
+	echo "		To add environment data to Cerberus network organization, Ordering Service instances and all external (to Sipher) organizations hosts:"
+	echo "		-e network"
+	echo "		To add environment data to a specific external (to Sipher) organization:"
+	echo "		-e <organization-name>"
 	echo
+	echo "	remove-env-r"
+        echo "		Removes Sipher environment data from remote machines"
+        echo "		To remove environment data from Cerberus network organization and Orderins Service instances remote hosts:"
+        echo "		-e cerb"
+        echo "		To remove environment data from all external (to Sipher) organizations:"
+        echo "		-e ext"
+        echo "		To remove environment data from Cerberus network organization, Ordering Service instances and all external (to Sipher) organizations hosts:"
+        echo "		-e network"
+        echo "		To remove environment data from a specific external (to Sipher) organization:"
+        echo "		-e <organization-name>"
+        echo
+        echo "	update-env-r"
+        echo "		Updates Sipher environment data on remote machines"
+        echo "		To update environment data on Cerberus network organization and Orderins Service instances remote hosts:"
+        echo "		-e cerb"
+        echo "		To update environment data on all external (to Sipher) organizations:"
+        echo "		-e ext"
+        echo "		To update environment data on Cerberus network organization, Ordering Service instances and all external (to Sipher) organizations hosts:"
+        echo "		-e network"
+        echo "		To update environment data on a specific external (to Sipher) organization:"
+        echo "		-e <organization-name>"
+        echo
+	echo "	add-extra-hosts-r"
+        echo "		Adds Sipher extra hosts data to remote machines"
+        echo "		To add extra hosts data to Cerberus network organization and Orderins Service instances remote hosts:"
+        echo "		-e cerb"
+        echo "		To add extra hosts data to all external (to Sipher) organizations:"
+        echo "		-e ext"
+        echo "		To add extra hosts data to Cerberus network organization, Ordering Service instances and all external (to Sipher) organizations hosts:"
+        echo "		-e network"
+        echo "		To add extra hosts data to a specific external (to Sipher) organization:"
+        echo "		-e <organization-name>"
+        echo
+	echo "	remove-extra-hosts-r"
+        echo "		Removes Sipher extra hosts data from remote machines"
+        echo "		To remove extra hosts data from Cerberus network organization and Orderins Service instances remote hosts:"
+        echo "		-e cerb"
+        echo "		To remove extra hosts data from all external (to Sipher) organizations:"
+        echo "		-e ext"
+        echo "		To remove extra hosts data from Cerberus network organization, Ordering Service instances and all external (to Sipher) organizations hosts:"
+        echo "		-e network"
+        echo "		To remove extra hosts data from a specific external (to Sipher) organization:"
+        echo "		-e <organization-name>"
+        echo "	update-extra-hosts-r"
+        echo "		Updates Sipher extra hosts data on remote machines"
+        echo "		To update extra hosts data on Cerberus network organization and Orderins Service instances remote hosts:"
+        echo "		-e cerb"
+        echo "		To update extra hosts data on all external (to Sipher) organizations:"
+        echo "		-e ext"
+        echo "		To update extra hosts data on Cerberus network organization, Ordering Service instances and all external (to Sipher) organizations hosts:"
+        echo "		-e network"
+        echo "		To update extra hosts data on a specific external (to Sipher) organization:"
+        echo "		-e <organization-name>"
+        echo
+
+
 
 
   echo "Usage: "
@@ -111,9 +177,7 @@ function printHelp() {
   echo "    -t <timeout> - CLI timeout duration in seconds (defaults to 10)"
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
   echo "    -f <docker-compose-file> - specify which docker-compose file use (defaults to docker-compose-cli.yaml)"
-  echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo "    -l <language> - the chaincode language: golang (default) or node"
-  echo "    -o <consensus-type> - the consensus-type of the ordering service: solo (default) or kafka"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
   echo "    -v - verbose mode"
 }
@@ -386,127 +450,6 @@ function generateOrgConfiguration() {
 		replacePrivateKey
 		generateChannelsArtifacts
 	fi		
-}
-
-function addSipherEnvDataCerberus() {
-
-	checkCerberusEnv
-
-#	checkSipherConfigFilesOnCerberusMachines
-
-	addSipherEnvToCerberusMachines
-
-
-			#sshpass -p "${!osPasswordVar}" ssh ${!osUsernameVar}@${!osHostVar} "cd ${!osPathVar}hl/network && ./operatecntw.sh add-org-env -o sipher"
-			#result=$?
-			#echo $result
-
-		
-}
-
-function addSipherEnvDataExternalOrg() {
-	echo "hello"
-}
-
-function addEnvDataToNetworkRemotely() {
-	
-	checkCerberusOsOrgEnvForSsh
-
-	# set sipher data remotely
-	which sshpass
-	if [ "$?" -ne 0 ]; then
-		echo "sshpass tool not found"
-		exit 1
-	fi
-
-	if sshpass -p "${CERBERUS_OS_PASSWORD}" ssh $CERBERUS_OS_USERNAME@$CERBERUS_OS_IP '[ ! -f /home/anniran/server/go/src/cerberus-os/hl/network/external-orgs/sipher-data.json ]'; then
-		deliverOrgConfigurationFileToCerberus
-	fi
-
-	scriptLocation=$CERBERUS_OS_HOSTPATH/hl/network/cerberusntw.sh
-
-	sshpass -p "${CERBERUS_OS_PASSWORD}" ssh $CERBERUS_OS_USERNAME@$CERBERUS_OS_IP "cd $CERBERUS_OS_HOSTPATH/hl/network && ./cerberusntw.sh add-org-env -n sipher"
-	if [ "$?" -ne 0 ]; then
-		echo "ERROR: Cannot add Sipher environment data to network."
-		exit 1
-	fi
-
-	echo "Sipher environment data added remotely to Cerberus network records"
-}
-
-function removeEnvDataFromNetworkRemotely() {
-
-	checkCerberusOsOrgEnvForSsh
-
-	# unset sipher data remotely
-	which sshpass
-	if [ "$?" -ne 0 ]; then
-		echo "sshpass tool not found"
-		exit 1
-	fi
-
-	scriptLocation=$CERBERUS_OS_HOSTPATH/hl/network/cerberusntw.sh
-
-	sshpass -p "${CERBERUS_OS_PASSWORD}" ssh $CERBERUS_OS_USERNAME@$CERBERUS_OS_IP "cd $CERBERUS_OS_HOSTPATH/hl/network && ./cerberusntw.sh remove-org-env -n sipher"
-	if [ "$?" -ne 0 ]; then
-		echo "ERROR: Cannot add Sipher environment data to network."	
-		exit 1
-	fi
-
-	echo "Sipher environment data removed remotely from Cerberus network records"
-
-}
-
-function addInherentHostsToNetworkRemotely() {
-
-	checkCerberusOsOrgEnvForSsh
-
-	# unset sipher data remotely
-	which sshpass
-	if [ "$?" -ne 0 ]; then
-		echo "sshpass tool not found"
-		exit 1
-	fi
-
-	if sshpass -p "${CERBERUS_OS_PASSWORD}" ssh $CERBERUS_OS_USERNAME@$CERBERUS_OS_IP '[ ! -f /home/anniran/server/go/src/cerberus-os/hl/network/external-orgs/sipher-data.json ]'; then
-		deliverOrgConfigurationFileToCerberus
-	fi
-
-	scriptLocation=$CERBERUS_OS_HOSTPATH/hl/network/cerberusntw.sh
-   
-	sshpass -p "${CERBERUS_OS_PASSWORD}" ssh $CERBERUS_OS_USERNAME@$CERBERUS_OS_IP "cd $CERBERUS_OS_HOSTPATH/hl/network && ./cerberusntw.sh add-org-hosts -n sipher"
-	if [ "$?" -ne 0 ]; then
-		echo "ERROR: Cannot add Sipher hosts to network configuration files "
-		exit 1
-	fi
-    
-	echo "Sipher containers hosts data successfully added to Cerberus OS and organization"
-}
-
-function removeInherentHostsFromNetworkRemotely() {
-
-	checkCerberusOsOrgEnvForSsh
-
-	# unset sipher data remotely
-	which sshpass
-	if [ "$?" -ne 0 ]; then
-		echo "sshpass tool not found"
-		exit 1
-	fi      
-
-	scriptLocation=$CERBERUS_OS_HOSTPATH/hl/network/cerberusntw.sh
-
-	sshpass -p "${CERBERUS_OS_PASSWORD}" ssh $CERBERUS_OS_USERNAME@$CERBERUS_OS_IP "cd $CERBERUS_OS_HOSTPATH/hl/network && ./cerberusntw.sh remove-org-hosts -n sipher"
-	if [ "$?" -ne 0 ]; then
-		echo "ERROR: Cannot add Sipher hosts to network configuration files "
-		exit 1
-	fi
-
-	echo "Sipher containers hosts data successfully added to Cerberus OS and organization"
-
-}
-
-function deliverOrgConfigurationFileToCerberus() {
     
 	# deliver sipher-data.json file to network
 	destination=$CERBERUS_OS_IP:/home/anniran/server/go/src/cerberus-os/hl/network/external-orgs
@@ -746,6 +689,9 @@ elif [ "${MODE}" == "add-extra-hosts" ]; then
 elif [ "${MODE}" == "remove-extra-hosts" ]; then
 	EXPMODE="Removing extra hosts from Sipher configuration files"
 
+#######################################################################################################
+# Remote operations
+# Following starts scripts on remote host machines and perform actions on behalf of organizations hosts
 
 # ./sipher.sh add-s-env
 elif [ "${MODE}" == "add-env-r" ]; then
@@ -755,30 +701,22 @@ elif [ "${MODE}" == "add-env-r" ]; then
 elif [ "${MODE}" == "remove-env-r" ]; then
 	EXPMODE="Remove Sipher environment from remote machines"
 
-######################################################################################################
-# ./sipher.sh add-sipher-env-to-network
-elif [ "${MODE}" == "add-sipher-env-to-network" ]; then
-	EXPMODE="Adding Sipher environment data to network remotely"
+# ./sipher.sh update-env-r
+elif [ "${MODE}" == "update-env-r" ]; then
+	EXPMODE="Update Sipher environment on remote machines"
 
-# ./sipher.sh remove-sipher-env-from-network
-elif [ "${MODE}" == "remove-sipher-env-from-network" ]; then
-	EXPMODE="Removing Sipher environment data from network remotely"
+# ./sipher.sh add-extra-hosts-r
+elif [ "${MODE}" == "add-extra-hosts-r" ]; then
+	EXPMODE="Add Sipher extra hosts data on remote machines"
 
-# ./sipher.sh add-network-hosts
-elif [ "${MODE}" == "add-network-hosts" ]; then
-	EXPMODE="Adding Cerberus OS and organization hosts to Sipher containers"
+# ./sipher.sh remove-extra-hosts-r
+elif [ "${MODE}" == "remove-extra-hosts-r" ]; then
+	EXPMODE="Remove Sipher extra hosts from remote machines"
 
-# ./sipher.sh remove-network-hosts
-elif [ "${MODE}" == "remove-network-hosts" ]; then
-	EXPMODE="Removing Cerberus OS and organization hosts from Sipher containers"
+# ./sipher.sh update-extra-hosts-r
+elif [ "${MODE}" == "update-extra-hosts-r" ]; then
+	EXPMODE="Update Sipher extra hosts on remote machines"
 
-# ./sipher.sh add-inherent-hosts-to-network
-elif [ "${MODE}" == "add-inherent-hosts-to-network" ]; then
-	EXPMODE="Adding Sipher hosts to Cerberus OS and organization containers configuration"
-
-# ./sipher.sh remove-inherent-hosts-network
-elif [ "${MODE}" == "remove-inherent-hosts-network" ]; then
-	EXPMODE="Removing Sipher hosts from Cerberus OS and organization containers configuration"
 ########################################################################################################
 
 elif [ "${MODE}" == "connect-to-network" ]; then
@@ -1072,7 +1010,7 @@ elif [ "${MODE}" == "add-env-r" ]; then
 	fi
 
 elif [ "${MODE}" == "remove-env-r" ]; then
-
+	
 	# check if entity value is provided
         if [ -z "$ENTITY" ]; then
                 echo "Please provide entity name with '-e' option tag"
@@ -1081,10 +1019,128 @@ elif [ "${MODE}" == "remove-env-r" ]; then
         fi
 
         if [ "${ENTITY}" == "cerb" ]; then
-                # add Sipher environment data to cerberus network machines
+                # remove Sipher environment data from cerberus network remote hosts
                 bash scripts/removeSipherDataFromCerberus.sh "env"
+	
+	elif [ "${ENTITY}" == "ext" ]; then
+		# remove Sipher environment data from external organizations remote hosts
+		for file in external-orgs/*-data.json; do
+			bash scripts/removeSipherDataFromExternalOrg.sh $file "env"
+		done
+
+	elif [ "${ENTITY}" == "network" ]; then
+		 # remove Sipher environment data from cerberus network remote hosts
+                bash scripts/removeSipherDataFromCerberus.sh "env"
+
+		# remove Sipher environment data from external organizations remote hosts
+                for file in external-orgs/*-data.json; do
+                        bash scripts/removeSipherDataFromExternalOrg.sh $file "env"
+                done
+
+	else
+		# remove Sipher environment data from specific organization remote hosts
+		orgConfigFile="external-orgs/${ENTITY}-data.json"
+
+		bash scripts/removeSipherDataFromExternalOrg.sh $orgConfigFile "env"		
 	fi
 
+elif [ "${MODE}" == "update-env-r" ]; then
+
+	# check if entity value is provided
+        if [ -z "$ENTITY" ]; then
+                echo "Please provide entity name with '-e' option tag"
+                printHelp
+                exit 1
+        fi
+
+	if [ "${ENTITY}" == "cerb" ]; then
+                # update Sipher environment data on cerberus network remote hosts
+                bash scripts/removeSipherDataFromCerberus.sh "env"
+		bash scripts/addSipherDataToCerberus.sh "env"
+
+        elif [ "${ENTITY}" == "ext" ]; then
+                # update Sipher environment data on external organizations remote hosts
+                for file in external-orgs/*-data.json; do
+                        bash scripts/removeSipherDataFromExternalOrg.sh $file "env"
+			bash scripts/addSipherDataToExternalOrg.sh $file "env"
+                done
+
+        elif [ "${ENTITY}" == "network" ]; then
+                 # update Sipher environment data on cerberus network remote hosts
+                bash scripts/removeSipherDataFromCerberus.sh "env"
+
+                # update Sipher environment data on external organizations remote hosts
+                for file in external-orgs/*-data.json; do
+                        bash scripts/removeSipherDataFromExternalOrg.sh $file "env"
+			bash scripts/addSipherDataToExternalOrg.sh $file "env"
+                done
+
+        else
+                # update Sipher environment data on specific organization remote hosts
+                orgConfigFile="external-orgs/${ENTITY}-data.json"               
+
+                bash scripts/removeSipherDataFromExternalOrg.sh $orgConfigFile "env"
+		bash scripts/addSipherDataToExternalOrg.sh $file "env"           
+        fi
+
+
+elif [ "${MODE}" == "add-extra-hosts-r" ]; then
+
+	# check if entity value is provided
+        if [ -z "$ENTITY" ]; then
+                echo "Please provide entity name with '-e' option tag"
+                printHelp
+                exit 1
+        fi
+
+	
+        if [ "${ENTITY}" == "cerb" ]; then
+                # add Sipher environment data to cerberus network machines
+                bash scripts/addSipherDataToCerberus.sh "extrahosts"
+
+        elif [ "${ENTITY}" == "ext" ]; then
+                # add Sipher environment data to all external organizations machines
+                for file in external-orgs/*-data.json; do
+                        bash scripts/addSipherDataToExternalOrg.sh $file "extrahosts"
+                done
+
+        elif [ "${ENTITY}" == "network" ]; then
+                # add Sipher environment data to cerberus network machines
+                bash scripts/addSipherDataToCerberus.sh "extrahosts"
+
+                # add Sipher environment data to all external organizations machines
+                for file in external-orgs/*-data.json; do
+                        bash scripts/addSipherDataToExternalOrg.sh $file "extrahosts"
+                done
+
+        else
+                # add Sipher environment data to external organization machines
+                orgConfigFile="external-orgs/${ENTITY}-data.json"
+
+                bash scripts/addSipherDataToExternalOrg.sh $orgConfigFile "extrahosts"
+        fi
+
+elif [ "${MODE}" == "remove-extra-hosts-r" ]; then
+
+        # check if entity value is provided
+        if [ -z "$ENTITY" ]; then
+                echo "Please provide entity name with '-e' option tag"
+                printHelp
+                exit 1
+        fi
+
+	# to be developed
+
+elif [ "${MODE}" == "update-extra-hosts-r" ]; then
+
+        # check if entity value is provided
+        if [ -z "$ENTITY" ]; then
+                echo "Please provide entity name with '-e' option tag"
+                printHelp
+                exit 1
+        fi
+
+	# to be developed
 
 #############################################################################################
 

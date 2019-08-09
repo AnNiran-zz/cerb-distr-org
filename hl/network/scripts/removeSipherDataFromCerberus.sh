@@ -34,7 +34,7 @@ fi
 SIPHER_CONFIG_FILE=sipher-data.json
 
 if [ ! -f "sipher-config/$SIPHER_CONFIG_FILE" ]; then
-        echo "ERROR: Sipher configuration file is not present. Cannot proceed with pasrind network data"
+        echo "ERROR: Sipher configuration file is not present. Cannot proceed with pasring network data"
         exit 1
 fi
 

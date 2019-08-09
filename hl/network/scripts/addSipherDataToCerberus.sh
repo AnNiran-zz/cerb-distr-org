@@ -118,6 +118,19 @@ for osinstance in $(echo "${osinstances}" | jq -r '.[] | @base64'); do
 
 			echo
 			echo "Sipher environment data has been successfully added on ${!osHostVar} remote machine"
+
+		elif [ "${dataType}" == "extrahosts" ]; then
+			sshpass -p "${!osPasswordVar}" ssh ${!osUsernameVar}@${!osHostVar} "cd ${!osPathVar}hl/network && bash scripts/addOrgExtraHosts.sh sipher"
+                        result=$?
+                        echo $result
+
+                        if [ $result -ne 0 ]; then
+                                echo "ERROR: Sipher extra hosts data is not added on ${!osHostVar} machine"
+                                exit 1
+                        fi
+
+                        echo
+                        echo "Sipher extra hosts data has been successfully added on ${!osHostVar} remote machine"
 		fi
 	}
 	echo $(_jq '.label')
@@ -172,6 +185,19 @@ for orgContainer in $(echo "${orgContainers}" | jq -r '. | @base64'); do
 			echo
 			echo "Sipher data has been successfully added to environment on ${!peerHostMachine} machine"
 			echo
+
+		elif [ "${dataType}" == "extrahosts" ]; then
+			sshpass -p "${!peerPasswordVar}" ssh ${!peerUsernameVar}@${!peerHostVar} "cd ${!peerPathVar}hl/network && bash scripts/addOrgExtraHosts.sh sipher"
+                        result=$?
+                        echo $result
+
+                        if [ $result -ne 0 ]; then
+                                echo "ERROR: Sipher extra hosts data is not added on ${!peerHostVar} machine"
+                                exit 1
+                        fi
+
+                        echo
+                        echo "Sipher extra hosts data has been successfully added on ${!peerHostVar} remote machine"
 		fi
 	}
 	echo $(_jq '.name')

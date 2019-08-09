@@ -45,6 +45,13 @@ source .env
 source ~/.profile
 
 orgLabelValue=$(jq -r '.label' $ORG_CONFIG_FILE)
+result=$?
+
+if [ "$result" -ne 0 ]; then
+        echo "ERROR: Format for $ORG_CONFIG_FILE does not match expected"
+        exit 1
+fi
+
 orgLabelValueStripped=$(echo $orgLabelValue | sed 's/"//g')
 orgLabelVar="${orgLabelValueStripped^^}_ORG_LABEL"
 
