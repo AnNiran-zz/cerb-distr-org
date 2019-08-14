@@ -11,7 +11,23 @@ function addExtraHost() {
         if [[ " ${extraHostsParsed[*]} " == *"$newHostContainer"* ]]; then
                 echo "$newHost already in list of extra hosts for $container"
         else
-                yq write --inplace sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts[+] $newHost
+                yq write --inplace sipher-$container.yaml services["${container}".sipher.cerberus.net].extra_hosts[+] $newHost
+                echo "added ${extraHost} in list of extra_hosts for $container"
+        fi
+}
+
+function addCliExtraHost() {
+        extraHosts=$1 # existing extraHosts
+        container=$2
+        newHostContainer=$3
+        newHost=$4
+
+        extraHostsParsed=$(echo ${extraHosts} | jq '. | to_entries[]')
+
+        if [[ " ${extraHostsParsed[*]} " == *"$newHostContainer"* ]]; then
+                echo "$newHost already in list of extra hosts for cli.$container"
+        else
+                yq write --inplace sipher-$container.yaml services[cli."${container}".sipher.cerberus.net].extra_hosts[+] $newHost
                 echo "added ${extraHost} in list of extra_hosts for $container"
         fi
 }
@@ -74,17 +90,17 @@ done
 cerberusOrgContainers=$(jq -r '.containers[]' $CERBERUSORG_CONFIG_FILE)
 
 cd sipher-config/
-sipherContainers=(anchorpr lead0pr lead1pr communicatepr cli)
+sipherContainers=(anchorpr lead0pr lead1pr communicatepr)
 
 for container in "${sipherContainers[@]}"; do
                 
-	hosts=$(yq r --tojson sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts)
+	hosts=$(yq r --tojson sipher-$container.yaml services["${container}".sipher.cerberus.net].extra_hosts)
 
 	echo
 	echo "### Adding network hosts to ${container}.sipher.cerberus.net ..."
 
 	if [ "$hosts" == null ]; then
-		yq write --inplace sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts[+] null
+		yq write --inplace sipher-$container.yaml services["${container}".sipher.cerberus.net].extra_hosts[+] null
 
 		for osinstance in $(echo "${osinstances}" | jq -r '.[] | @base64'); do
 			_jq(){
@@ -96,7 +112,7 @@ for container in "${sipherContainers[@]}"; do
 
 				extraHost="\"$containerValueStripped:$hostValueStripped\""
 
-				yq write --inplace sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts[+] $extraHost
+				yq write --inplace sipher-$container.yaml services["${container}".sipher.cerberus.net].extra_hosts[+] $extraHost
 			}
 			echo $(_jq '.container' '.host')
 		done
@@ -110,12 +126,12 @@ for container in "${sipherContainers[@]}"; do
 				hostValueStripped=$(echo $hostValue | sed 's/"//g')
 
 				extraHost="\"$containerValueStripped:$hostValueStripped\""
-				yq write --inplace sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts[+] $extraHost
+				yq write --inplace sipher-$container.yaml services["${container}".sipher.cerberus.net].extra_hosts[+] $extraHost
 			}
 			echo $(_jq '.container' '.host')
 		done
 
-		yq delete --inplace sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts[0]
+		yq delete --inplace sipher-$container.yaml services["${container}".sipher.cerberus.net].extra_hosts[0]
 
 	else
 		for osinstance in $(echo "${osinstances}" | jq -r '.[] | @base64'); do
@@ -149,10 +165,83 @@ for container in "${sipherContainers[@]}"; do
 			echo $(_jq '.container' '.host')
 		done
 	fi
+
+        cliHosts=$(yq r --tojson sipher-$container.yaml services[cli."${container}".sipher.cerberus.net].extra_hosts)
+
+        echo
+        echo "### Adding network hosts to ${container}.sipher.cerberus.net ..."
+
+        if [ "$cliHosts" == null ]; then
+                yq write --inplace sipher-$container.yaml services[cli."${container}".sipher.cerberus.net].extra_hosts[+] null
+
+                for osinstance in $(echo "${osinstances}" | jq -r '.[] | @base64'); do
+                        _jq(){
+                                containerValue=$(echo "\"$(echo ${osinstance} | base64 --decode | jq -r ${1})\"")
+                                containerValueStripped=$(echo $containerValue | sed 's/"//g')
+
+                                hostValue=$(echo "\"$(echo ${osinstance} | base64 --decode | jq -r ${2})\"")
+                                hostValueStripped=$(echo ${hostValue} | sed 's/"//g')
+
+                                extraHost="\"$containerValueStripped:$hostValueStripped\""
+
+                                yq write --inplace sipher-$container.yaml services[cli."${container}".sipher.cerberus.net].extra_hosts[+] $extraHost
+                        }
+                        echo $(_jq '.container' '.host')
+                done
+
+                for row in $(echo "${cerberusOrgContainers}" | jq -r '. | @base64'); do
+                        _jq(){
+                                containerValue=$(echo "\"$(echo ${row} | base64 --decode | jq -r ${1})\"")
+                                containerValueStripped=$(echo $containerValue | sed 's/"//g')
+
+                                hostValue=$(echo "\"$(echo ${row} | base64 --decode | jq -r ${2})\"")
+                                hostValueStripped=$(echo $hostValue | sed 's/"//g')
+
+                                extraHost="\"$containerValueStripped:$hostValueStripped\""
+                                yq write --inplace sipher-$container.yaml services[cli."${container}".sipher.cerberus.net].extra_hosts[+] $extraHost
+                        }
+                        echo $(_jq '.container' '.host')
+                done
+
+                yq delete --inplace sipher-$container.yaml services[cli."${container}".sipher.cerberus.net].extra_hosts[0]
+
+        else
+                for osinstance in $(echo "${osinstances}" | jq -r '.[] | @base64'); do
+                        _jq(){
+                                containerValue=$(echo "\"$(echo ${osinstance} | base64 --decode | jq -r ${1})\"")
+                                containerValueStripped=$(echo $containerValue | sed 's/"//g')
+
+                                hostValue=$(echo "\"$(echo ${osinstance} | base64 --decode | jq -r ${2})\"")
+                                hostValueStripped=$(echo $hostValue | sed 's/"//g')
+
+                                extraHost="\"$containerValueStripped:$hostValueStripped\""
+                                
+				addCliExtraHost $cliHosts $container $containerValueStripped $extraHost
+                                #yq write --inplace sipher-org.yaml services["${container}".sipher.cerberus.net].extra_hosts[+] $extraHost
+                        }
+                        echo $(_jq '.container' '.host')
+                done
+
+                for row in $(echo "${cerberusOrgContainers}" | jq -r '. | @base64'); do
+                        _jq(){
+                                containerValue=$(echo "$(echo ${row} | base64 --decode | jq -r ${1})")
+                                containerValueStripped=$(echo $containerValue | sed 's/"//g')
+
+                                hostValue=$(echo "\"$(echo ${row} | base64 --decode | jq -r ${2})\"")
+                                hostValueStripped=$(echo $hostValue | sed 's/"//g')
+
+                                extraHost="\"$containerValueStripped:$hostValueStripped\""
+				
+                                addCliExtraHost $cliHosts $container $containerValueStripped $extraHost
+                        }
+                        echo $(_jq '.container' '.host')
+                done
+        fi
+
 done
 
 cd $CURRENT_DIR
 
 echo
-echo "### Cerberus network organization and Orsering Service instances external hosts successfully added to Sipher configuration ###"
+echo "### Cerberus network organization and Ordering Service instances external hosts successfully added to Sipher configuration ###"
 

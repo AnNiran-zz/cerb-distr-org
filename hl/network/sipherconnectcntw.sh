@@ -178,7 +178,7 @@ function generateOrgConfiguration() {
 function createConfigTx() {
 	
 	# run script in cerberus	
-
+	
 
 }
 

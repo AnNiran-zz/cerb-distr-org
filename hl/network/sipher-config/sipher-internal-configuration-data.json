@@ -1,0 +1,91 @@
+{
+	"comment": "This file contains Sipher internal structure configuration and is used for managing containers and running instances on each hosts",
+        "label": "sipher",
+        "name": "Sipher",
+        "msp": "SipherMSP",
+	"runningHostPeers": [
+		{
+                        "name": "anchorpr",
+                        "container": "anchorpr.sipher.cerberus.net",
+                        "host": "155.138.144.24",
+                        "username": "anniran",
+                        "password": "9anna8925lva",
+                        "path": "/home/anniran/server/go/src/cerberus/"
+                },
+                {
+                        "name": "lead0pr",
+                        "container": "lead0pr.sipher.cerberus.net",
+                        "host": "155.138.144.24",
+                        "username": "anniran",
+                        "password": "9anna8925lva",
+                        "path": "/home/anniran/server/go/src/cerberus/"
+                }
+	],
+        "containers":  [
+                {
+                        "name": "anchorpr",
+                        "container": "anchorpr.sipher.cerberus.net",
+                        "host": "155.138.144.24",
+                        "username": "anniran",
+                        "password": "9anna8925lva",
+                        "path": "/home/anniran/server/go/src/cerberus/"
+                },
+                {
+                        "name": "lead0pr",
+                        "container": "lead0pr.sipher.cerberus.net",
+                        "host": "155.138.144.24",
+                        "username": "anniran",
+                        "password": "9anna8925lva",
+                        "path": "/home/anniran/server/go/src/cerberus/"
+                },
+                {
+                        "name": "lead1pr",
+                        "container": "lead1pr.sipher.cerberus.net",
+                        "host": "155.138.144.24",
+                        "username": "anniran",
+                        "password": "9anna8925lva",
+                        "path": "/home/anniran/server/go/src/cerberus/"
+                },
+                {
+                        "name": "communicatepr",
+                        "container": "communicatepr.sipher.cerberus.net",
+                        "host": "155.138.144.24",
+                        "username": "anniran",
+                        "password": "9anna8925lva",
+                        "path": "/home/anniran/server/go/src/cerberus/"
+                },
+                {
+                        "name": "execute0pr",
+                        "container": "execute0pr.sipher.cerberus.net",
+                        "host": "155.138.144.24",
+                        "username": "anniran",
+                        "password": "9anna8925lva",
+                        "path": "/home/anniran/server/go/src/cerberus/"
+                },
+                {
+                        "name": "execute1pr",
+                        "container": "execute1pr.sipher.cerberus.net",
+                        "host": "155.138.144.24",
+                        "username": "anniran",
+                        "password": "9anna8925lva",
+                        "path": "/home/anniran/server/go/src/cerberus/"
+                },
+                {
+                        "name": "fallback0pr",
+                        "container": "fallback0pr.sipher.cerberus.net",
+                        "host": "155.138.144.24",
+                        "username": "anniran",
+                        "password": "9anna8925lva",
+                        "path": "/home/anniran/server/go/src/cerberus/"
+                },
+                {
+                        "name": "fallback1pr",
+                        "container": "fackback1pr.sipher.cerberus.net",
+                        "host": "155.138.144.24",
+                        "username": "anniran",
+                        "password": "9anna8925lva",
+                        "path": "/home/anniran/server/go/src/cerberus/"
+                }
+
+        ]
+}     

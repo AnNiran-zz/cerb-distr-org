@@ -1,0 +1,110 @@
+version: "2"
+volumes:
+  communicatepr.sipher.cerberus.net: null
+networks:
+  cerberusntw: null
+services:
+  couchdb.communicatepr.sipher:
+    container_name: couchdb.communicatepr.sipher
+    image: hyperledger/fabric-couchdb:$IMAGE_TAG
+    environment:
+    - COUCHDB_USER=usercommunicateprsipher
+    - COUCHDB_PASSWORD=passwordcommunicateprsipher
+    ports:
+    - 10016:5984
+    networks:
+    - cerberusntw
+  communicatepr.sipher.cerberus.net:
+    extends:
+      file: ../base/docker-compose-sipher-base.yaml
+      service: communicatepr.sipher.cerberus.net
+    environment:
+    - CORE_PEER_ID=communicatepr.sipher.cerberus.net
+    - CORE_PEER_ADDRESS=communicatepr.sipher.cerberus.net
+    - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+    - CORE_PEER_CHAINCODEADDRESS=communicatepr.sipher.cerberus.net:10014
+    - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10014
+    - CORE_PEER_GOSSIP_USELEADERELECTION=false
+    - CORE_PEER_GOSSIP_BOOTSTRAP=lead0pr.sipher.cerberus.net:7051
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=anchorpr.sipher.cerberus.net:7051
+    - CORE_PEER_LOCALMSPID=SipherMSP
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.communicatepr.sipher:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=usercommunicateprsipher
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=passwordcommunicateprsipher
+    volumes:
+    - /var/run/:/host/var/run/
+    - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/communicatepr.sipher.cerberus.net/msp:/etc/hyperledger/fabric/msp
+    - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/communicatepr.sipher.cerberus.net/tls:/etc/hyperledger/fabric/tls
+    - communicatepr.sipher.cerberus.net:/var/hyperledger/production
+    ports:
+    - 10013:7051
+    - 10014:7052
+    - 10015:7053
+    networks:
+    - cerberusntw
+    depends_on:
+    - couchdb.communicatepr.sipher
+    extra_hosts:
+    - osinstance0.cerberus.net:159.203.35.156
+    - osinstance1.cerberus.net:159.203.35.156
+    - osinstance2.cerberus.net:159.203.35.156
+    - osinstance3.cerberus.net:159.203.35.156
+    - osinstance4.cerberus.net:159.203.35.156
+    - anchorpr.cerberusorg.cerberus.net:159.203.35.156
+    - leadpr.cerberusorg.cerberus.net:159.203.35.156
+    - communicatepr.cerberusorg.cerberus.net:159.203.35.156
+    - anchorpr.violet.cerberus.net:000.11.000.111
+    - lead0pr.violet.cerberus.net:000.11.000.111
+    - lead1pr.violet.cerberus.net:000.11.000.111
+    - communicatepr.violet.cerberus.net:000.11.000.111
+    - anchorpr.ghost.cerberus.net:000.11.000.111
+    - lead0pr.ghost.cerberus.net:000.11.000.111
+    - lead1pr.ghost.cerberus.net:000.11.000.111
+    - communicatepr.ghost.cerberus.net:000.11.000.111
+  cli.communicatepr.sipher.cerberus.net:
+    container_name: cli.communicatepr.sipher.cerberus.net
+    image: hyperledger/fabric-tools:$IMAGE_TAG
+    tty: true
+    stdin_open: true
+    environment:
+    - GOPATH=/opt/gopath
+    - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+    - FABRIC_LOGGING_SPEC=INFO
+    - CORE_PEER_ID=cli.communicatepr.sipher.cerberus.net
+    - CORE_PEER_ADDRESS=communicatepr.sipher.cerberus.net:7051
+    - CORE_PEER_LOCALMSPID=SipherMSP
+    - CORE_PEER_TLS_ENABLED=true
+    - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/sipher.cerberus.net/peers/communicatepr.sipher.cerberus.net/tls/server.crt
+    - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/sipher.cerberus.net/peers/communicatepr.sipher.cerberus.net/tls/server.key
+    - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/sipher.cerberus.net/users/Admin@sipher.cerberus.net/msp
+    - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/sipher.cerberus.net/users/Admin@sipher.cerberus.net/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+    - /var/run/:/host/var/run/
+    - ../../../chaincode/:/opt/gopath/src/github.com/chaincode
+    - ../crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto
+    - ../scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts
+    - ../channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+    - communicatepr.sipher.cerberus.net
+    networks:
+    - cerberusntw
+    extra_hosts:
+    - osinstance0.cerberus.net:159.203.35.156
+    - osinstance1.cerberus.net:159.203.35.156
+    - osinstance2.cerberus.net:159.203.35.156
+    - osinstance3.cerberus.net:159.203.35.156
+    - osinstance4.cerberus.net:159.203.35.156
+    - anchorpr.cerberusorg.cerberus.net:159.203.35.156
+    - leadpr.cerberusorg.cerberus.net:159.203.35.156
+    - communicatepr.cerberusorg.cerberus.net:159.203.35.156
+    - anchorpr.violet.cerberus.net:000.11.000.111
+    - lead0pr.violet.cerberus.net:000.11.000.111
+    - lead1pr.violet.cerberus.net:000.11.000.111
+    - communicatepr.violet.cerberus.net:000.11.000.111
+    - anchorpr.ghost.cerberus.net:000.11.000.111
+    - lead0pr.ghost.cerberus.net:000.11.000.111
+    - lead1pr.ghost.cerberus.net:000.11.000.111
+    - communicatepr.ghost.cerberus.net:000.11.000.111

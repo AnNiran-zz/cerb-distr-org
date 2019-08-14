@@ -428,9 +428,9 @@ CLI_TIMEOUT=10
 # default for delay between commands
 CLI_DELAY=20
 
-PERSON_ACCOUNTS_CHANNEL="pachannel"
-ORGANIZATION_ACCOUNTS_CHANNEL="oachannel"
-INTEGRATION_ACCOUNTS_CHANNEL="iachannel"
+PERSON_ACCOUNTS_CHANNEL="persaccntschannel"
+INSTITUTION_ACCOUNTS_CHANNEL="instaccntschannel"
+INTEGRATION_ACCOUNTS_CHANNEL="integraccntschannel"
 
 # use this as the default docker-compose yaml definition
 COMPOSE_FILE=docker-compose-cli.yaml
@@ -986,7 +986,7 @@ elif [ "${MODE}" == "connect-to-network" ]; then
 
 elif [ "${MODE}" == "test" ]; then
 
-	echo "this is a test"
+	bash scripts/startSipherContainers.sh
 
 
 

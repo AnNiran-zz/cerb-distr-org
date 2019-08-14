@@ -1,0 +1,76 @@
+version: "2"
+volumes:
+  execute1pr.sipher.cerberus.net: null
+networks:
+  cerberusntw: null
+services:
+  couchdb.execute1pr.sipher:
+    container_name: couchdb.execute1pr.sipher
+    image: hyperledger/fabric-couchdb:$IMAGE_TAG
+    environment:
+    - COUCHDB_USER=userexecute1prsipher
+    - COUCHDB_PASSWORD=passwordexecute1prsipher
+    ports:
+    - 10024:5984
+    networks:
+    - cerberusntw
+  execute1pr.sipher.cerberus.net:
+    extends:
+      file: ../base/docker-compose-sipher-base.yaml
+      service: execute1pr.sipher.cerberus.net
+    environment:
+    - CORE_PEER_ID=execute1pr.sipher.cerberus.net
+    - CORE_PEER_ADDRESS=execute1pr.sipher.cerberus.net
+    - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+    - CORE_PEER_CHAINCODEADDRESS=execute1pr.sipher.cerberus.net:10022
+    - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10022
+    - CORE_PEER_GOSSIP_USELEADERELECTION=false
+    - CORE_PEER_GOSSIP_BOOTSTRAP=lead0pr.sipher.cerberus.net:7051
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=anchorpr.sipher.cerberus.net:7051
+    - CORE_PEER_LOCALMSPID=SipherMSP
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.execute1pr.sipher:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=userexecute1prsipher
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=passwordexecute1prsipher
+    volumes:
+    - /var/run/:/host/var/run/
+    - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/execute1pr.sipher.cerberus.net/msp:/etc/hyperledger/fabric/msp
+    - ../crypto-config/peerOrganizations/sipher.cerberus.net/peers/execute1pr.sipher.cerberus.net/tls:/etc/hyperledger/fabric/tls
+    - execute1pr.sipher.cerberus.net:/var/hyperledger/production
+    ports:
+    - 10021:7051
+    - 10022:7052
+    - 10023:7053
+    networks:
+    - cerberusntw
+    depends_on:
+    - couchdb.execute1pr.sipher
+  cli.execute1pr.sipher.cerberus.net:
+    container_name: cli.execute1pr.sipher.cerberus.net
+    image: hyperledger/fabric-tools:$IMAGE_TAG
+    tty: true
+    stdin_open: true
+    environment:
+    - GOPATH=/opt/gopath
+    - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+    - FABRIC_LOGGING_SPEC=INFO
+    - CORE_PEER_ID=cli.execute1pr.sipher.cerberus.net
+    - CORE_PEER_ADDRESS=execute1pr.sipher.cerberus.net:7051
+    - CORE_PEER_LOCALMSPID=SipherMSP
+    - CORE_PEER_TLS_ENABLED=true
+    - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/sipher.cerberus.net/peers/execute1pr.sipher.cerberus.net/tls/server.crt
+    - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/sipher.cerberus.net/peers/execute1pr.sipher.cerberus.net/tls/server.key
+    - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/sipher.cerberus.net/users/Admin@sipher.cerberus.net/msp
+    - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/sipher.cerberus.net/users/Admin@sipher.cerberus.net/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+    - /var/run/:/host/var/run/
+    - ../../../chaincode/:/opt/gopath/src/github.com/chaincode
+    - ../crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto
+    - ../scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts
+    - ../channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+    - execute1pr.sipher.cerberus.net
+    networks:
+    - cerberusntw 
